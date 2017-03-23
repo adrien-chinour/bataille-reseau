@@ -46,18 +46,22 @@ def displayConfiguration(boats, shots=[], showBoats=True):
         if y == 0:
             l = "  "
         else:
-            l = str(y)
+            l = l + str(y)
             if y < 10:
                 l = l + " "
         for x in range(1,WIDTH+1):
             l = l + str(Matrix[x][y]) + " "
-        print(l)
+        l = l + "\n"
+    return l
 
 """ display the game viewer by the player"""
-def displayGame(game, player):
+def displayGame(game, player, server ,socket_player, l):
     otherPlayer = (player+1)%2
-    displayConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
-    displayConfiguration([], game.shots[player], showBoats=False)
+    m = displayConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
+    #print(m)
+    sendMessage(m.encode(), l, [], server)
+    m = displayConfiguration([], game.shots[player], showBoats=False)
+    sendMessage(m.encode(), l, [], server)
 
 """ get coordinates from data send """
 def getCoordinates (data):
@@ -100,7 +104,7 @@ def main():
     
     print("2 joueurs connectées sur le serveur.")
     
-    displayGame(game, currentPlayer)
+    displayGame(game, currentPlayer, main_socket ,[] ,l)
     
     while gameOver(game) == -1:
         read,_,_ = select.select(l,[],[])
@@ -111,7 +115,7 @@ def main():
                     data = socket.recv(1500)
                 x,y = getCoordinates(data)
                 addShot(game, x, y, currentPlayer)
-                displayGame(game, 0)
+                displayGame(game, 0, socket, main_socket, l)
                 currentPlayer = (currentPlayer+1)%2
                 
 

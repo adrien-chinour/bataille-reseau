@@ -12,14 +12,13 @@ def createServer():
     return s
 
     
-def sendMessage(struc,lod,so,s):
+def sendMessage(struc,lod,so,serveur):
     for i in lod:
-        if i!=s and i!=so:
+        if i!=serveur and i!=so:
             i.send(struc)
 
 
-def readMessage(struc,l,so):
-    #if(struc.startswith("PLAY")):
+def readMessage(struc,l,so, s):
     if(struc.startswith("MSG")):
         if(struc.startswith("MSG public") and public[so]):
             sendMessage(struc,public,so)
