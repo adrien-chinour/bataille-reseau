@@ -68,6 +68,31 @@ def randomNewShot(shots):
     return (x,y)
 
 def main():
+    main_socket = createServer()
+    l = [main_socket]
+    while(1):
+    a,_,_ = select.select(l,[],[])
+    for so in a:
+        if(so==s):
+            nc,ad = s.accept()
+            l.append(nc)
+            j = ad[0]
+            users[nc]=j
+            public[nc]=1
+            ad = "JOIN " + j +"\n"
+            ad.encode()
+            sendmessage(ad,l,so)
+        else:
+            m = so.recv(1500)
+            lecture(m,l,so)
+            if(len(m)==0):
+                ad = "PART " + users[so] +"\n"
+                ad.encode()
+                sendmessage(ad,l,so)
+                so.close
+                del user[so]
+                l.remove(so)
+    
     boats1 = randomConfiguration()
     boats2 = randomConfiguration()
     game = Game(boats1, boats2)
