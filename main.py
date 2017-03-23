@@ -81,14 +81,14 @@ def main():
             public[nc]=1
             ad = "JOIN " + j +"\n"
             ad.encode()
-            sendmessage(ad,l,so)
+            sendMessage(ad,l,so)
         else:
             m = so.recv(1500)
-            lecture(m,l,so)
+            readMessage(m,l,so)
             if(len(m)==0):
                 ad = "PART " + users[so] +"\n"
                 ad.encode()
-                sendmessage(ad,l,so)
+                sendMessage(ad,l,so)
                 so.close
                 del user[so]
                 l.remove(so)
