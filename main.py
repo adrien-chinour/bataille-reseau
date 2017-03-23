@@ -58,7 +58,9 @@ def displayGame(game, player):
     displayConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
     displayConfiguration([], game.shots[player], showBoats=False)
 
-
+""" get coordinates from data send """
+def getCoordinates (data):
+    #a finir
 
 """ Play a new random shot """
 def randomNewShot(shots):
@@ -68,9 +70,19 @@ def randomNewShot(shots):
     return (x,y)
 
 def main():
+    #creation du serveur
     main_socket = createServer()
     l = [main_socket]
-    while(1):
+    users = {}
+    players = []
+
+    #creation de la partie
+    boats1 = randomConfiguration()
+    boats2 = randomConfiguration()
+    game = Game(boats1, boats2)
+    currentPlayer = 0;
+    
+    while(len(l) < 3):
     a,_,_ = select.select(l,[],[])
     for so in a:
         if(so==s):
@@ -78,51 +90,24 @@ def main():
             l.append(nc)
             j = ad[0]
             users[nc]=j
-            public[nc]=1
-            ad = "JOIN " + j +"\n"
-            ad.encode()
-            sendMessage(ad,l,so)
-        else:
-            m = so.recv(1500)
-            readMessage(m,l,so)
-            if(len(m)==0):
-                ad = "PART " + users[so] +"\n"
-                ad.encode()
-                sendMessage(ad,l,so)
-                so.close
-                del user[so]
-                l.remove(so)
+            players[currentPlayer] = nc
+            sendMessage( ("JOIN " + j +"\n").encode(), l, so)
     
-    boats1 = randomConfiguration()
-    boats2 = randomConfiguration()
-    game = Game(boats1, boats2)
-    displayGame(game, 0)
     print("======================")
-
-    currentPlayer = 0
+    
     displayGame(game, currentPlayer)
+    
     while gameOver(game) == -1:
-        print("======================")
-        if currentPlayer == J0:
-            x_char = input ("quelle colonne ? ")
-            x_char.capitalize()
-            x = ord(x_char)-ord("A")+1
-            y = int(input ("quelle ligne ? "))
-        else:
-            (x,y) = randomNewShot(game.shots[currentPlayer])
-            time.sleep(1)
-        addShot(game, x, y, currentPlayer)
-        displayGame(game, 0)
-        currentPlayer = (currentPlayer+1)%2
-    print("game over")
-    print("your grid :")
-    displayGame(game, J0)
-    print("the other grid :")
-    displayGame(game, J1)
-
-    if gameOver(game) == J0:
-        print("You win !")
-    else:
-        print("you loose !")
+        read,_,_ = select.select(l,[],[])
+        for socket in read:
+            if socket = players[currentPlayer]:
+                data = socket.recv(1500)
+                while(data == ""):
+                    data = socket.recv(1500)
+                x,y = getCoordinates(data)
+                addShot(game, x, y, currentPlayer)
+                displayGame(game, 0)
+                currentPlayer = (currentPlayer+1)%2
+                
 
 main()
