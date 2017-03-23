@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from game import *
+from reseau import *
 import  random
 import time
 
@@ -60,7 +61,11 @@ def displayGame(game, player):
 
 """ get coordinates from data send """
 def getCoordinates (data):
-    #a finir
+    coordinates = data.decode().split(' ', 2)
+    x = ord(coordinates[1][0]) - ord("A")+1
+    y = int(coordinates[1][1])
+    return x,y
+    
 
 """ Play a new random shot """
 def randomNewShot(shots):
@@ -80,27 +85,27 @@ def main():
     boats1 = randomConfiguration()
     boats2 = randomConfiguration()
     game = Game(boats1, boats2)
-    currentPlayer = 0;
+    currentPlayer = 0
     
     while(len(l) < 3):
-    a,_,_ = select.select(l,[],[])
-    for so in a:
-        if(so==s):
-            nc,ad = s.accept()
-            l.append(nc)
-            j = ad[0]
-            users[nc]=j
-            players[currentPlayer] = nc
-            sendMessage( ("JOIN " + j +"\n").encode(), l, so)
+        read,_,_ = select.select(l,[],[])
+        for socket in read:
+            if socket == main_socket:
+                nc,ad = main_socket.accept()
+                l.append(nc)
+                j = ad[0]
+                users[nc]=j
+                players.append(nc)
+                sendMessage( ("JOIN " + j +"\n").encode(), l, socket, main_socket)
     
-    print("======================")
+    print("2 joueurs connectées sur le serveur.")
     
     displayGame(game, currentPlayer)
     
     while gameOver(game) == -1:
         read,_,_ = select.select(l,[],[])
         for socket in read:
-            if socket = players[currentPlayer]:
+            if socket == players[currentPlayer]:
                 data = socket.recv(1500)
                 while(data == ""):
                     data = socket.recv(1500)

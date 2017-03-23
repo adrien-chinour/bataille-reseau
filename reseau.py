@@ -12,7 +12,7 @@ def createServer():
     return s
 
     
-def sendMessage(struc,lod,so):
+def sendMessage(struc,lod,so,s):
     for i in lod:
         if i!=s and i!=so:
             i.send(struc)
