@@ -65,9 +65,9 @@ def displayGame(game, player, server ,socket_player, l):
 
 """ get coordinates from data send """
 def getCoordinates (data):
-    coordinates = data.decode().split(' ', 2)
-    x = ord(coordinates[1][0]) - ord("A")+1
-    y = int(coordinates[1][1])
+    coordinates = data.decode().rstrip("\n").split(' ', 2)
+    x = ord(coordinates[0]) - ord("A")+1
+    y = int(coordinates[1])
     return x,y
     
 
@@ -102,10 +102,11 @@ def main():
                 players.append(nc)
                 sendMessage( ("JOIN " + j +"\n").encode(), l, socket, main_socket)
     
-    print("2 joueurs connectées sur le serveur.")
+    print("2 joueurs connectées sur le serveur.\n")
     
     displayGame(game, 0, main_socket, players[0], l)
     displayGame(game, 1, main_socket, players[1], l)
+    players[currentPlayer].send("Vous commencez\n".encode())
     
     while gameOver(game) == -1:
         read,_,_ = select.select(l,[],[])
@@ -118,6 +119,7 @@ def main():
                 addShot(game, x, y, currentPlayer)
                 displayGame(game, 0, socket, main_socket, l)
                 currentPlayer = (currentPlayer+1)%2
+                players[currentPlayer].send("C'est votre tour !\n".encode())
                 
 
 main()
