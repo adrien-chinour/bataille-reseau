@@ -47,7 +47,7 @@ def gameOver(game):
             if strike:
                 nbStrikes += 1
         print(player, nbStrikes)    
-        if nbStrikes == 17: 
+        if nbStrikes == 17:
             return player
     return -1;
 

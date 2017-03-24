@@ -5,8 +5,6 @@ from reseau import *
 import  random
 import time
 
-
-
 """ generate a random valid configuration """
 def randomConfiguration():
     boats = [];
@@ -19,8 +17,7 @@ def randomConfiguration():
             boats = boats + [Boat(x,y,LENGTHS_REQUIRED[i],isHorizontal)]
     return boats
 
-    
-
+""" display configuration """
 def displayConfiguration(boats, shots=[], showBoats=True):
     Matrix = [[" " for x in range(WIDTH+1)] for y in range(WIDTH+1)]
     for i  in range(1,WIDTH+1):
@@ -57,11 +54,14 @@ def displayConfiguration(boats, shots=[], showBoats=True):
 """ display the game viewer by the player"""
 def displayGame(game, player, server ,socket_player, l):
     otherPlayer = (player+1)%2
+    
+    #envoi de la configuration personnel
     m = displayConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
-    #print(m)
-    sendMessage(m.encode(), l, [], server)
+    sendMessage(m.encode(), l, socket_player, server)
+    
+    #envoi de la configuration adverse
     m = displayConfiguration([], game.shots[player], showBoats=False)
-    sendMessage(m.encode(), l, [], server)
+    sendMessage(m.encode(), l, socket_player, server)
 
 """ get coordinates from data send """
 def getCoordinates (data):
@@ -104,7 +104,8 @@ def main():
     
     print("2 joueurs connectées sur le serveur.")
     
-    displayGame(game, currentPlayer, main_socket ,[] ,l)
+    displayGame(game, 0, main_socket, players[0], l)
+    displayGame(game, 1, main_socket, players[1], l)
     
     while gameOver(game) == -1:
         read,_,_ = select.select(l,[],[])
