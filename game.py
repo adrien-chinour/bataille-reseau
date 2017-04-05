@@ -1,4 +1,4 @@
-import  random 
+import  random
 
 
 WIDTH = 10 # width of the grid
@@ -46,7 +46,7 @@ def gameOver(game):
         for (x,y,strike) in game.shots[player]:
             if strike:
                 nbStrikes += 1
-        print(player, nbStrikes)    
+        print(player, nbStrikes)
         if nbStrikes == 17:
             return player
     return -1;
@@ -87,9 +87,9 @@ def boat2rec(b):
         return (b.length, 1)
     else:
         return (1, b.length)
-    
+
 """ check if 2 boats overlap """
-def intersect(b1, b2):  
+def intersect(b1, b2):
     (w1,h1) = boat2rec(b1)
     (w2,h2) = boat2rec(b2)
     h_inter = (b1.x <=b2.x and b2.x < b1.x + w1) or \
@@ -110,6 +110,3 @@ def isANewShot(x,y, shots):
         if (xx,yy) == (x,y):
             return False
     return True
-
-
-

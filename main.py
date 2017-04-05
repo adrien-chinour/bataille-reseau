@@ -1,10 +1,12 @@
 #!/usr/bin/python3
 
 from game import *
-from network import *
+from reseau import *
 import  random
 import time
 import sys
+
+
 
 """ generate a random valid configuration """
 def randomConfiguration():
@@ -18,7 +20,7 @@ def randomConfiguration():
             boats = boats + [Boat(x,y,LENGTHS_REQUIRED[i],isHorizontal)]
     return boats
 
-    
+
 
 def displayConfiguration(boats, shots=[], showBoats=True):
     Matrix = [[" " for x in range(WIDTH+1)] for y in range(WIDTH+1)]
@@ -55,11 +57,11 @@ def displayConfiguration(boats, shots=[], showBoats=True):
 """ display the game viewer by the player"""
 def displayGame(game, player):
     otherPlayer = (player+1)%2
-    displayConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=
-True)
+    displayConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
     displayConfiguration([], game.shots[player], showBoats=False)
 
-    
+
+
 """ Play a new random shot """
 def randomNewShot(shots):
     (x,y) = (random.randint(1,10), random.randint(1,10))
@@ -68,13 +70,6 @@ def randomNewShot(shots):
     return (x,y)
 
 def main():
-
-    if(len(sys.argv) == 1):
-        main_socket = initServer()
-
-    elif(len(sys.argv) == 3):
-        client_socket = initClient(sys.argv[1],sys.argv[2])
-    
     boats1 = randomConfiguration()
     boats2 = randomConfiguration()
     game = Game(boats1, boats2)
