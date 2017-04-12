@@ -54,24 +54,40 @@ def randomNewShot(shots):
     return (x,y)
 
 def main():
-    
     if(len(sys.argv) ==1):
         #creation serveur
         server = createServer()
         l = [server]
+        joueur = {}
+        nbp = 1 #nb de participants
+        tour_j = 0
         while(1):
             a,_,_ = select.select(l,[],[])
             for so in a:
                 if(so==server):
                     nc,_ = server.accept()
                     l.append(nc)
-                    nc.send("cc\n".encode())
+                    nc.send("Bienvenue\n".encode())
+                    joueur[nbp] = nc
+                    if(nbp < 3):
+                        nc.send(("Vous êtes le joueur " +str(nbp)+ "\n").encode())
+                        nbp+=1
+                    else:
+                        nc.send("Vous êtes un observateur\n".encode())
+                        nbp+=1
                 else:
-                    m = so.recv(1500)
-                    print(data.decode())
-                    if(len(m)==0):
-                        so.close
-                        l.remove(so)
+                    if(so == joueur[tour_j+1]):
+                        m = so.recv(1500)
+                        print(m.decode())
+                        if(len(m)==0):
+                            so.close
+                            l.remove(so)
+                        tour_j = (tour_j +1)%2
+                    else:
+                        m = so.recv(1500)
+                        if(len(m)==0):
+                            so.close
+                            l.remove(so)                      
     else:
         #creation client
         client = createClient(sys.argv[1],sys.argv[2])
@@ -84,9 +100,10 @@ def main():
                 if(len(m)==0):
                     so.close
                     l.remove(so)
-        
-        
-        
+            message = input('enter \n')
+            so.send((format(message)).encode())
+            print("aaaa\n")
+            
     """
     boats1 = randomConfiguration()
     boats2 = randomConfiguration()
