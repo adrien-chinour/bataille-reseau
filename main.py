@@ -54,6 +54,40 @@ def randomNewShot(shots):
     return (x,y)
 
 def main():
+    
+    if(len(sys.argv) ==1):
+        #creation serveur
+        server = createServer()
+        l = [server]
+        while(1):
+            a,_,_ = select.select(l,[],[])
+            for so in a:
+                if(so==server):
+                    nc,_ = server.accept()
+                    l.append(nc)
+                    nc.send("cc\n".encode())
+                else:
+                    m = so.recv(1500)
+                    print(data.decode())
+                    if(len(m)==0):
+                        so.close
+                        l.remove(so)
+    else:
+        #creation client
+        client = createClient(sys.argv[1],sys.argv[2])
+        l = [client]
+        while(1):
+            a,_,_ = select.select(l,[],[])
+            for so in a:
+                m = so.recv(1500)
+                print(m.decode())
+                if(len(m)==0):
+                    so.close
+                    l.remove(so)
+        
+        
+        
+    """
     boats1 = randomConfiguration()
     boats2 = randomConfiguration()
     game = Game(boats1, boats2)
@@ -85,5 +119,5 @@ def main():
         print("You win !")
     else:
         print("you loose !")
-
+    """
 main()
