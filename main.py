@@ -44,7 +44,7 @@ def getConfiguration(boats, shots=[], showBoats=True):
     for y in range(WIDTH):
         for x in range(WIDTH):
             l = l + str(Matrix[x][y])
-    return l
+    return l + "X"
 
 """ display the game viewer by the player"""
 def displayGame(data):
@@ -91,13 +91,13 @@ def main():
                 if(so==server):
                     nc,_ = server.accept()
                     l.append(nc)
-                    nc.send("Bienvenue\n".encode())
+                    nc.send("Bienvenue1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890".encode())
                     joueur[nbp] = nc
                     if(nbp < 3):
-                        nc.send(("Vous êtes le joueur " +str(nbp)+ "\n").encode())
+                        #nc.send(("Vous êtes le joueur " +str(nbp)+ "\n").encode())
                         nbp+=1
                     else:
-                        nc.send("Vous êtes un observateur\n".encode())
+                        #nc.send("Vous êtes un observateur\n".encode())
                         nbp+=1
                 else:
                     if(so == joueur[tour_j+1]):
