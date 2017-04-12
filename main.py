@@ -6,8 +6,6 @@ import  random
 import time
 import sys
 
-
-
 """ generate a random valid configuration """
 def randomConfiguration():
     boats = [];
@@ -21,12 +19,8 @@ def randomConfiguration():
     return boats
 
 
-
-def displayConfiguration(boats, shots=[], showBoats=True):
-    Matrix = [[" " for x in range(WIDTH+1)] for y in range(WIDTH+1)]
-    for i  in range(1,WIDTH+1):
-        Matrix[i][0] = chr(ord("A")+i-1)
-        Matrix[0][i] = i
+def getConfiguration(boats, shots=[], showBoats=True):
+    Matrix = [["N" for x in range(WIDTH)] for y in range(WIDTH)]
 
     if showBoats:
         for i in range(NB_BOATS):
@@ -34,33 +28,23 @@ def displayConfiguration(boats, shots=[], showBoats=True):
             (w,h) = boat2rec(b)
             for dx in range(w):
                 for dy in range(h):
-                    Matrix[b.x+dx][b.y+dy] = str(i)
-
+                    Matrix[b.x+dx-1][b.y+dy-1] = str(i)
     for (x,y,stike) in shots:
         if stike:
-            Matrix[x][y] = "X"
+            Matrix[x-1][y-1] = "X"
         else:
-            Matrix[x][y] = "O"
-
-
-    for y in range(0, WIDTH+1):
-        if y == 0:
-            l = "  "
-        else:
-            l = str(y)
-            if y < 10:
-                l = l + " "
-        for x in range(1,WIDTH+1):
-            l = l + str(Matrix[x][y]) + " "
-        print(l)
+            Matrix[x-1][y-1] = "O"
+    l = ""
+    for y in range(WIDTH):
+        for x in range(WIDTH):
+            l = l + str(Matrix[x][y])
+    return l
 
 """ display the game viewer by the player"""
-def displayGame(game, player):
+def displayGame(data):
     otherPlayer = (player+1)%2
-    displayConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
-    displayConfiguration([], game.shots[player], showBoats=False)
-
-
+    getConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
+    getConfiguration([], game.shots[player], showBoats=False)
 
 """ Play a new random shot """
 def randomNewShot(shots):
