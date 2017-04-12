@@ -18,9 +18,14 @@ def randomConfiguration():
             boats = boats + [Boat(x,y,LENGTHS_REQUIRED[i],isHorizontal)]
     return boats
 
+def sendGame(game, player, socket):
+    otherPlayer = (player+1)%2
+    data = getConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
+    data = data + getConfiguration([], game.shots[player], showBoats=False)
+    socket.send(data)
 
 def getConfiguration(boats, shots=[], showBoats=True):
-    Matrix = [["N" for x in range(WIDTH)] for y in range(WIDTH)]
+    Matrix = [[" " for x in range(WIDTH)] for y in range(WIDTH)]
 
     if showBoats:
         for i in range(NB_BOATS):
@@ -42,9 +47,21 @@ def getConfiguration(boats, shots=[], showBoats=True):
 
 """ display the game viewer by the player"""
 def displayGame(data):
-    otherPlayer = (player+1)%2
-    getConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
-    getConfiguration([], game.shots[player], showBoats=False)
+    for k in range(0,2):
+        for i in range(0, WIDTH+1):
+            l = ""
+            if i == 0:
+                l = "  "
+            else:
+                l = l + chr(ord("A")+i-1) + " "
+            for j in range(1, WIDTH+1):
+                if i == 0:
+                    l = l + str(j) + " "
+                else:
+                    l = l + data[(i-1)*10+j-1+k*100] + " "
+            print(l)
+        print("======================")
+
 
 """ Play a new random shot """
 def randomNewShot(shots):
@@ -52,6 +69,7 @@ def randomNewShot(shots):
     while not isANewShot(x,y,shots):
         (x,y) = (random.randint(1,10), random.randint(1,10))
     return (x,y)
+
 
 def main():
     if(len(sys.argv) ==1):
