@@ -22,7 +22,8 @@ def sendGame(game, player, socket):
     otherPlayer = (player+1)%2
     data = getConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
     data = data + getConfiguration([], game.shots[player], showBoats=False)
-    socket.send(data)
+    print("envoi des donnees")
+    socket.send(data.encode())
 
 def getConfiguration(boats, shots=[], showBoats=True):
     Matrix = [[" " for x in range(WIDTH)] for y in range(WIDTH)]
@@ -73,6 +74,11 @@ def randomNewShot(shots):
 
 def main():
     if(len(sys.argv) ==1):
+        #creation game
+        boats1 = randomConfiguration()
+        boats2 = randomConfiguration()
+        game = Game(boats1, boats2)
+
         #creation serveur
         server = createServer()
         l = [server]
@@ -96,16 +102,19 @@ def main():
                 else:
                     if(so == joueur[tour_j+1]):
                         m = so.recv(1500)
-                        print(m.decode())
+                        m = m.decode()
+                        addShot(game, ord(m[0].capitalize())-ord("A")+1, int(m[1]), tour_j)
                         if(len(m)==0):
                             so.close
                             l.remove(so)
                         tour_j = (tour_j +1)%2
+                        sendGame(game, 0, joueur[1])
+                        sendGame(game, 1, joueur[2])
                     else:
                         m = so.recv(1500)
                         if(len(m)==0):
                             so.close
-                            l.remove(so)                      
+                            l.remove(so)
     else:
         #creation client
         client = createClient(sys.argv[1],sys.argv[2])
@@ -114,18 +123,15 @@ def main():
             a,_,_ = select.select(l,[],[])
             for so in a:
                 m = so.recv(1500)
-                print(m.decode())
+                displayGame(m.decode())
                 if(len(m)==0):
                     so.close
                     l.remove(so)
             message = input('enter \n')
             so.send((format(message)).encode())
-            print("aaaa\n")
-            
+
     """
-    boats1 = randomConfiguration()
-    boats2 = randomConfiguration()
-    game = Game(boats1, boats2)
+
     displayGame(game, 0)
     print("======================")
 
