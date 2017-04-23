@@ -72,6 +72,15 @@ def randomNewShot(shots):
     return (x,y)
 
 
+def readMessage(m):
+    if(len(m) < 100):
+        print(m)
+    else:
+        displayGame(m)
+        
+
+
+    
 def main():
     if(len(sys.argv) ==1):
         #creation game
@@ -83,7 +92,7 @@ def main():
         server = createServer()
         l = [server]
         joueur = {}
-        nbp = 1 #nb de participants
+        nbp = 0 #nb de participants
         tour_j = 0
         while(1):
             a,_,_ = select.select(l,[],[])
@@ -91,30 +100,31 @@ def main():
                 if(so==server):
                     nc,_ = server.accept()
                     l.append(nc)
-                    nc.send("Bienvenue1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890".encode())
+                    nc.send("Bienvenue".encode())
                     joueur[nbp] = nc
-                    if(nbp < 3):
+                    if(nbp < 2):
                         #nc.send(("Vous êtes le joueur " +str(nbp)+ "\n").encode())
                         nbp+=1
                     else:
                         #nc.send("Vous êtes un observateur\n".encode())
                         nbp+=1
                 else:
-                    if(so == joueur[tour_j+1]):
+                    if(so == joueur[tour_j]):
                         m = so.recv(1500)
                         m = m.decode()
                         addShot(game, ord(m[0].capitalize())-ord("A")+1, int(m[1]), tour_j)
                         if(len(m)==0):
                             so.close
                             l.remove(so)
+                        sendGame(game, 0, joueur[0])
+                        sendGame(game, 1, joueur[1])
                         tour_j = (tour_j +1)%2
-                        sendGame(game, 0, joueur[1])
-                        sendGame(game, 1, joueur[2])
                     else:
                         m = so.recv(1500)
                         if(len(m)==0):
                             so.close
                             l.remove(so)
+                        so.send("Mauvais tour".encode())
     else:
         #creation client
         client = createClient(sys.argv[1],sys.argv[2])
@@ -123,7 +133,7 @@ def main():
             a,_,_ = select.select(l,[],[])
             for so in a:
                 m = so.recv(1500)
-                displayGame(m.decode())
+                readMessage(m.decode())
                 if(len(m)==0):
                     so.close
                     l.remove(so)
