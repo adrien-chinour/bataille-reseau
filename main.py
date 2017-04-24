@@ -6,7 +6,7 @@ import  random
 import time
 import sys
 
-""" generate a random valid configuration """
+""" generation d'une configuration random """
 def randomConfiguration():
     boats = [];
     while not isValidConfiguration(boats):
@@ -18,17 +18,23 @@ def randomConfiguration():
             boats = boats + [Boat(x,y,LENGTHS_REQUIRED[i],isHorizontal)]
     return boats
 
+""" Envoi l'état du jeu au joueur sous forme de chaine de caractere de longueur 202 """
+""" (2 caractere pour le tour, 100 caractere pour la première config et 100 pour la deuxième) """
 def sendGame(game, player, socket, turn):
-    otherPlayer = (player+1)%2
-    if turn:
-        data = "YT"
-    else:
-        data = "WT"
-    data = data + getConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
-    data = data + getConfiguration([], game.shots[player], showBoats=False)
-    print("envoi des donnees")
-    socket.send(data.encode())
+    if (player != -1):
+        otherPlayer = (player+1)%2
+        if turn:
+            data = "YT"
+        else:
+            data = "WT"
+        data = data + getConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
+        data = data + getConfiguration([], game.shots[player], showBoats=False)
+        print("envoi des donnees")
+        socket.send(data.encode())
+    else
+        """ parti observateur """
 
+""" converti la configuration en une chaine de caractère contenant toute les cases de la grille """
 def getConfiguration(boats, shots=[], showBoats=True):
     Matrix = [[" " for x in range(WIDTH)] for y in range(WIDTH)]
     if showBoats:
@@ -49,7 +55,7 @@ def getConfiguration(boats, shots=[], showBoats=True):
             l = l + str(Matrix[x][y])
     return l
 
-""" display the game viewer by the player"""
+""" Affiche l'etat de la partie """
 def displayGame(data):
     for k in range(2):
         for i in range(WIDTH+1):
@@ -66,6 +72,12 @@ def displayGame(data):
             print(l)
         print("======================")
 
+""" Check if game is over and send data tu player"""
+def checkGameFinish(a, game):
+    if (gameOver(game) != -1):
+        message = "Le joueur " + str(gameOver(game)+1) + " à gagné!"
+        for so in a:
+            so.send(message.encode())
 
 """ Play a new random shot """
 def randomNewShot(shots):
@@ -74,32 +86,41 @@ def randomNewShot(shots):
         (x,y) = (random.randint(1,10), random.randint(1,10))
     return (x,y)
 
+""" Gestion des messages reçu par le client (protocole personnel) """
 def readMessage(m,socket):
+
+    """ c'est ton tour! Voici la partie actuelle, tu joue quoi ?"""
     if(m.startswith('YT')):
         displayGame(m.lstrip('YT'))
         message = input('Quelles sont les coordonnées à viser ? (ex: B2) \n')
         socket.send((format(message)).encode())
+
+    """ C'est pas ton tour mais voici l'état de la partie """
     elif(m.startswith('WT')):
         displayGame(m.lstrip('WT'))
+
+    """ Je voulais juste te dire que... """
     else:
         print(m)
 
 def main():
+
+    """ Gestion du serveur """
     if(len(sys.argv) ==1):
-        #creation game
         boats1 = randomConfiguration()
         boats2 = randomConfiguration()
         game = Game(boats1, boats2)
 
-        #creation serveur
         server = createServer()
         l = [server]
         joueur = {}
-        nbp = 0 #nb de participants
+        nbp = 0
         tour_j = 0
         while(1):
             a,_,_ = select.select(l,[],[])
             for so in a:
+
+                """ Nouveau socket connecté """
                 if(so==server):
                     nc,_ = server.accept()
                     l.append(nc)
@@ -108,12 +129,16 @@ def main():
                     if(nbp < 2):
                         nc.send(("Vous êtes le joueur " +str(nbp+1)+ "\n").encode())
                         nbp+=1
+
+                        """ Démarrage de la partie (envoi des configurations initiales) """
                         if(nbp == 2):
                             sendGame(game, 0, joueur[0], (tour_j == 0))
                             sendGame(game, 1, joueur[1], (tour_j == 1))
                     else:
                         #nc.send("Vous êtes un observateur\n".encode())
                         nbp+=1
+
+                """ Partie en cours """
                 elif(nbp >= 2):
                     if(so == joueur[tour_j]):
                         m = so.recv(1500)
@@ -126,8 +151,10 @@ def main():
                         tour_j = (tour_j +1)%2
                         sendGame(game, 0, joueur[0], (tour_j == 0))
                         sendGame(game, 1, joueur[1], (tour_j == 1))
+                        checkGameFinish(a, game)
+
+    """ Gestion d'un client (joueur / observateur) """
     else:
-        #creation client
         client = createClient(sys.argv[1],sys.argv[2])
         l = [client]
         while(1):
@@ -140,35 +167,4 @@ def main():
                 else:
                     readMessage(m.decode(),so)
 
-    """
-
-    displayGame(game, 0)
-    print("======================")
-
-    currentPlayer = 0
-    displayGame(game, currentPlayer)
-    while gameOver(game) == -1:
-        print("======================")
-        if currentPlayer == J0:
-            x_char = input ("quelle colonne ? ")
-            x_char.capitalize()
-            x = ord(x_char)-ord("A")+1
-            y = int(input ("quelle ligne ? "))
-        else:
-            (x,y) = randomNewShot(game.shots[currentPlayer])
-            time.sleep(1)
-        addShot(game, x, y, currentPlayer)
-        displayGame(game, 0)
-        currentPlayer = (currentPlayer+1)%2
-    print("game over")
-    print("your grid :")
-    displayGame(game, J0)
-    print("the other grid :")
-    displayGame(game, J1)
-
-    if gameOver(game) == J0:
-        print("You win !")
-    else:
-        print("you loose !")
-    """
 main()

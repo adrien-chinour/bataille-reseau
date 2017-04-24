@@ -1,6 +1,5 @@
 import  random
 
-
 WIDTH = 10 # width of the grid
 
 NB_BOATS = 5 # nb boats in the game
