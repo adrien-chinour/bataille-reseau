@@ -18,15 +18,19 @@ def randomConfiguration():
             boats = boats + [Boat(x,y,LENGTHS_REQUIRED[i],isHorizontal)]
     return boats
 
-def sendGame(game, player, socket):
+def sendGame(game, player, socket, turn):
     otherPlayer = (player+1)%2
+    if turn:
+        data = "YT"
+    else:
+        data = "WT"
     data = getConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
     data = data + getConfiguration([], game.shots[player], showBoats=False)
     print("envoi des donnees")
     socket.send(data.encode())
 
 def getConfiguration(boats, shots=[], showBoats=True):
-    Matrix = [[" " for x in range(WIDTH)] for y in range(WIDTH)]
+    Matrix = [["+" for x in range(WIDTH)] for y in range(WIDTH)]
     if showBoats:
         for i in range(NB_BOATS):
             b = boats[i]
@@ -70,13 +74,14 @@ def randomNewShot(shots):
         (x,y) = (random.randint(1,10), random.randint(1,10))
     return (x,y)
 
-
-def readMessage(m):
-    if (m == "YT"):
-        message = input('Quelles sont les coordonnées à viser ? (ex: B2)\n')
-        so.send((format(message)).encode())
-    if(len(m) == 200):
-        displayGame(m)
+def readMessage(m,socket):
+    if(m.startswith('YT')):
+        print(m.lstrip('YT'))
+        displayGame(m.lstrip('YT'))
+        message = input('Quelles sont les coordonnées à viser ? (ex: B2) \n')
+        socket.send((format(message)).encode())
+    elif(m.startswith('WT')):
+        displayGame(m.lstrip('WT'))
     else:
         print(m)
 
@@ -99,15 +104,17 @@ def main():
                 if(so==server):
                     nc,_ = server.accept()
                     l.append(nc)
-                    nc.send(("Bienvenue, vous êtes le joueur " + str(nbp+1)).encode())
+                    nc.send("Bienvenue\n".encode())
                     joueur[nbp] = nc
                     if(nbp < 2):
-                        #nc.send(("Vous êtes le joueur " +str(nbp)+ "\n").encode())
+                        nc.send(("Vous êtes le joueur " +str(nbp+1)+ "\n").encode())
                         nbp+=1
+                        if(nbp == 2):
+                            joueur[0].send('YT'.encode())
                     else:
                         #nc.send("Vous êtes un observateur\n".encode())
                         nbp+=1
-                else:
+                elif(nbp >= 2):
                     if(so == joueur[tour_j]):
 
                         m = so.recv(1500)
@@ -116,15 +123,10 @@ def main():
                         if(len(m)==0):
                             so.close
                             l.remove(so)
-                        sendGame(game, 0, joueur[0])
-                        sendGame(game, 1, joueur[1])
+                        sendGame(game, 0, joueur[0], (tour_j == 0))
+                        sendGame(game, 1, joueur[1], (tour_j == 1))
                         tour_j = (tour_j +1)%2
-                    else:
-                        m = so.recv(1500)
-                        if(len(m)==0):
-                            so.close
-                            l.remove(so)
-                        so.send("Mauvais tour".encode())
+                        joueur[tour_j].send('YT'.encode())
     else:
         #creation client
         client = createClient(sys.argv[1],sys.argv[2])
@@ -133,10 +135,12 @@ def main():
             a,_,_ = select.select(l,[],[])
             for so in a:
                 m = so.recv(1500)
-                readMessage(m.decode())
                 if(len(m)==0):
                     so.close
                     l.remove(so)
+                else:
+                    print('lecture')
+                    readMessage(m.decode(),so)
 
     """
 
