@@ -30,7 +30,7 @@ def sendGame(game, player, socket, turn):
     socket.send(data.encode())
 
 def getConfiguration(boats, shots=[], showBoats=True):
-    Matrix = [["+" for x in range(WIDTH)] for y in range(WIDTH)]
+    Matrix = [[" " for x in range(WIDTH)] for y in range(WIDTH)]
     if showBoats:
         for i in range(NB_BOATS):
             b = boats[i]
@@ -110,7 +110,7 @@ def main():
                         nbp+=1
                         if(nbp == 2):
                             sendGame(game, 0, joueur[0], (tour_j == 0))
-                            sendGame(game, 1, joueur[1], (tour_j == 1))               
+                            sendGame(game, 1, joueur[1], (tour_j == 1))
                     else:
                         #nc.send("Vous êtes un observateur\n".encode())
                         nbp+=1
@@ -119,7 +119,7 @@ def main():
                         m = so.recv(1500)
                         m = m.decode()
                         print(m)
-                        addShot(game, ord(m[0].capitalize())-ord("A")+1, int(m[1]), tour_j)
+                        addShot(game, int(m[1]), ord(m[0].capitalize())-ord("A")+1, tour_j)
                         if(len(m)==0):
                             so.close
                             l.remove(so)
