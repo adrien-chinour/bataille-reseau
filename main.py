@@ -24,7 +24,7 @@ def sendGame(game, player, socket, turn):
         data = "YT"
     else:
         data = "WT"
-    data = getConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
+    data = data + getConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
     data = data + getConfiguration([], game.shots[player], showBoats=False)
     print("envoi des donnees")
     socket.send(data.encode())
@@ -76,11 +76,18 @@ def randomNewShot(shots):
 
 def readMessage(m,socket):
     if(m.startswith('YT')):
-        print(m.lstrip('YT'))
+        print('truc1\n')
+        print(m.strip('YT')+'\n')
+        if(len(m)<100):
+            print('???\n')
         displayGame(m.lstrip('YT'))
         message = input('Quelles sont les coordonnées à viser ? (ex: B2) \n')
         socket.send((format(message)).encode())
     elif(m.startswith('WT')):
+        print('truc\n')
+        print(m.lstrip('YT'))
+        if(len(m)<100):
+            print('???\n')
         displayGame(m.lstrip('WT'))
     else:
         print(m)
@@ -110,13 +117,13 @@ def main():
                         nc.send(("Vous êtes le joueur " +str(nbp+1)+ "\n").encode())
                         nbp+=1
                         if(nbp == 2):
-                            joueur[0].send('YT'.encode())
+                            sendGame(game, 0, joueur[0], (tour_j == 0))
+                            sendGame(game, 1, joueur[1], (tour_j == 1))               
                     else:
                         #nc.send("Vous êtes un observateur\n".encode())
                         nbp+=1
                 elif(nbp >= 2):
                     if(so == joueur[tour_j]):
-
                         m = so.recv(1500)
                         m = m.decode()
                         addShot(game, ord(m[0].capitalize())-ord("A")+1, int(m[1]), tour_j)
@@ -126,7 +133,6 @@ def main():
                         sendGame(game, 0, joueur[0], (tour_j == 0))
                         sendGame(game, 1, joueur[1], (tour_j == 1))
                         tour_j = (tour_j +1)%2
-                        joueur[tour_j].send('YT'.encode())
     else:
         #creation client
         client = createClient(sys.argv[1],sys.argv[2])
