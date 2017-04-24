@@ -76,18 +76,10 @@ def randomNewShot(shots):
 
 def readMessage(m,socket):
     if(m.startswith('YT')):
-        print('truc1\n')
-        print(m.strip('YT')+'\n')
-        if(len(m)<100):
-            print('???\n')
         displayGame(m.lstrip('YT'))
         message = input('Quelles sont les coordonnées à viser ? (ex: B2) \n')
         socket.send((format(message)).encode())
     elif(m.startswith('WT')):
-        print('truc\n')
-        print(m.lstrip('YT'))
-        if(len(m)<100):
-            print('???\n')
         displayGame(m.lstrip('WT'))
     else:
         print(m)
@@ -126,13 +118,14 @@ def main():
                     if(so == joueur[tour_j]):
                         m = so.recv(1500)
                         m = m.decode()
+                        print(m)
                         addShot(game, ord(m[0].capitalize())-ord("A")+1, int(m[1]), tour_j)
                         if(len(m)==0):
                             so.close
                             l.remove(so)
+                        tour_j = (tour_j +1)%2
                         sendGame(game, 0, joueur[0], (tour_j == 0))
                         sendGame(game, 1, joueur[1], (tour_j == 1))
-                        tour_j = (tour_j +1)%2
     else:
         #creation client
         client = createClient(sys.argv[1],sys.argv[2])
@@ -145,7 +138,6 @@ def main():
                     so.close
                     l.remove(so)
                 else:
-                    print('lecture')
                     readMessage(m.decode(),so)
 
     """
