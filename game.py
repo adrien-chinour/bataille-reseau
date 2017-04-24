@@ -33,8 +33,7 @@ class Game:
 def addShot(game, x,y, player):
     otherPlayer = (player+1)%2
     if not isANewShot(x,y, game.shots[player]):
-        return
-    game.shots[player].append((x,y, isAStrike(game.boats[otherPlayer], x, y)))
+        return game.shots[player].append((x,y, isAStrike(game.boats[otherPlayer], x, y)))
     return isAStrike(game.boats[otherPlayer], x, y)
 
 

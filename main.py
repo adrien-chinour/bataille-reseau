@@ -27,7 +27,6 @@ def sendGame(game, player, socket):
 
 def getConfiguration(boats, shots=[], showBoats=True):
     Matrix = [[" " for x in range(WIDTH)] for y in range(WIDTH)]
-
     if showBoats:
         for i in range(NB_BOATS):
             b = boats[i]
@@ -44,12 +43,12 @@ def getConfiguration(boats, shots=[], showBoats=True):
     for y in range(WIDTH):
         for x in range(WIDTH):
             l = l + str(Matrix[x][y])
-    return l + "X"
+    return l
 
 """ display the game viewer by the player"""
 def displayGame(data):
-    for k in range(0,2):
-        for i in range(0, WIDTH+1):
+    for k in range(2):
+        for i in range(WIDTH+1):
             l = ""
             if i == 0:
                 l = "  "
@@ -73,14 +72,14 @@ def randomNewShot(shots):
 
 
 def readMessage(m):
-    if(len(m) < 100):
-        print(m)
-    else:
+    if (m == "YT"):
+        message = input('Quelles sont les coordonnées à viser ? (ex: B2)\n')
+        so.send((format(message)).encode())
+    if(len(m) == 200):
         displayGame(m)
-        
+    else:
+        print(m)
 
-
-    
 def main():
     if(len(sys.argv) ==1):
         #creation game
@@ -100,7 +99,7 @@ def main():
                 if(so==server):
                     nc,_ = server.accept()
                     l.append(nc)
-                    nc.send("Bienvenue".encode())
+                    nc.send(("Bienvenue, vous êtes le joueur " + str(nbp+1)).encode())
                     joueur[nbp] = nc
                     if(nbp < 2):
                         #nc.send(("Vous êtes le joueur " +str(nbp)+ "\n").encode())
@@ -110,6 +109,7 @@ def main():
                         nbp+=1
                 else:
                     if(so == joueur[tour_j]):
+
                         m = so.recv(1500)
                         m = m.decode()
                         addShot(game, ord(m[0].capitalize())-ord("A")+1, int(m[1]), tour_j)
@@ -137,8 +137,6 @@ def main():
                 if(len(m)==0):
                     so.close
                     l.remove(so)
-            message = input('enter \n')
-            so.send((format(message)).encode())
 
     """
 
