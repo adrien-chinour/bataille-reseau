@@ -72,13 +72,15 @@ def randomNewShot(shots):
     return (x,y)
 
 
-def readMessage(m):
-    if(len(m) < 100):
-        print(m)
-    else:
+def readMessage(m,socket):
+    if(m == 'YT'):
+        print('i')
+        message = input('enter \n')
+        socket.send((format(message)).encode())
+    elif(len(m)>200):
         displayGame(m)
-        
-
+    else:
+        print(m)
 
     
 def main():
@@ -100,15 +102,17 @@ def main():
                 if(so==server):
                     nc,_ = server.accept()
                     l.append(nc)
-                    nc.send("Bienvenue".encode())
+                    nc.send("Bienvenue\n".encode())
                     joueur[nbp] = nc
                     if(nbp < 2):
-                        #nc.send(("Vous êtes le joueur " +str(nbp)+ "\n").encode())
+                        nc.send(("Vous êtes le joueur " +str(nbp+1)+ "\n").encode())
                         nbp+=1
+                        if(nbp == 2):
+                            joueur[0].send('YT'.encode())
                     else:
                         #nc.send("Vous êtes un observateur\n".encode())
                         nbp+=1
-                else:
+                elif(nbp >= 2):
                     if(so == joueur[tour_j]):
                         m = so.recv(1500)
                         m = m.decode()
@@ -119,12 +123,7 @@ def main():
                         sendGame(game, 0, joueur[0])
                         sendGame(game, 1, joueur[1])
                         tour_j = (tour_j +1)%2
-                    else:
-                        m = so.recv(1500)
-                        if(len(m)==0):
-                            so.close
-                            l.remove(so)
-                        so.send("Mauvais tour".encode())
+                        joueur[tour_j].send('YT'.encode())
     else:
         #creation client
         client = createClient(sys.argv[1],sys.argv[2])
@@ -133,12 +132,12 @@ def main():
             a,_,_ = select.select(l,[],[])
             for so in a:
                 m = so.recv(1500)
-                readMessage(m.decode())
                 if(len(m)==0):
                     so.close
                     l.remove(so)
-            message = input('enter \n')
-            so.send((format(message)).encode())
+                else:
+                    print('lecture')
+                    readMessage(m.decode(),so)
 
     """
 
