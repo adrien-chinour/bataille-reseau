@@ -15,6 +15,6 @@ def createServer():
 """ Connection du client au serveur """
 def createClient(IP,port):
     s = socket.socket(socket.AF_INET6,socket.SOCK_STREAM,0)
-    s.connect((IP,int(float(port))))
+    s.connect(('',int(float(port))))
     """ Note : pour une connection en local a la place de IP metre '' (bug chez moi) """
     return s

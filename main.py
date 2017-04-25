@@ -96,78 +96,111 @@ def randomNewShot(shots):
 def sendToAll(sockets, joueur, game, tour_j, server):
     for so in sockets[1:]:
         if so != server:
-            if so == joueur[0]:
-                sendGame(game, 0, joueur[0], (tour_j == 0))
-            elif so == joueur[1]:
-                sendGame(game, 1, joueur[1], (tour_j == 1))
+            if so == joueur[0][0]:
+                sendGame(game, 0, joueur[0][0], (tour_j[0] == 0))
+            elif so == joueur[1][0]:
+                sendGame(game, 1, joueur[1][0], (tour_j[0] == 1))
             else:
                 sendGame(game, -1, so, False)
 
 """ Gestion des messages reçu par le client (protocole personnel) """
 def readMessage(m,socket):
-
     #c'est ton tour! Voici la partie actuelle, tu joue quoi ?
     if(m.startswith('YT')):
         displayGame(m.lstrip('YT'))
         message = input('Quelles sont les coordonnées à viser ? (ex: B2) \n')
         socket.send((format(message)).encode())
-
     #C'est pas ton tour mais voici l'état de la partie
     elif(m.startswith('WT')):
         displayGame(m.lstrip('WT'))
-
+    elif(m == 'US'):
+        username = input('Entrez votre nom d\'utilisateur:\n')
+        socket.send(('US'+(format(username))).encode())
+    elif(m == 'PW'):
+        password = input('Entrez votre mot de passe:\n')
+        socket.send(('PW'+(format(password))).encode())
     #Je voulais juste te dire que...
     else:
         print(m)
 
-def main():
+""""""
+def readMessageServer(m,socket,users,joueur,game,tour_j,nbp,sockuser,l,server):
+    if(m.startswith('US')):
+        m = m[2:]
+        find = 0
+        for user in users:
+            if(user == m):
+                find = 1
+                break
+        if(find == 1):
+            joueur[nbp[0]] = (joueur[nbp[0]][0],m)##cherche existence
+        else:
+            sockuser[socket] = m
+            users[m] = ('')
+        socket.send('PW'.encode())
+    elif(m.startswith('PW')):
+        m = m[2:]
+        if(users[sockuser[socket]] == ''):
+            users[sockuser[socket]] = m
+            joueur[nbp[0]] = (socket,m)
+            nbp[0]+=1
+            if(nbp[0] <= 2):
+                socket.send(("Vous êtes le joueur " +str(nbp[0])+ "\n").encode())
+                # Démarrage de la partie (envoi des configurations initiales)
+                if(nbp[0] == 2):
+                    sendToAll(l, joueur, game, tour_j, server)
+            else:
+                nc.send("Vous êtes un observateur\n".encode())
+                sendGame(game, -1, nc, False)
+        elif(users[sockuser[socket]] == m):
+            joueur[nbp[0]] = (nc,users[sockuser[socket]])
+            nbp[0]+=1
+            # Démarrage de la partie (envoi des configurations initiales)
+            if(nbp[0] == 2):
+                sendToAll(l, joueur, game, tour_j[0], server)
+            socket.send('bon mot de passe')
+        else:
+            socket.send('PW')
+    else:
+        print(m)
+        addShot(game, int(m[1]), ord(m[0].capitalize())-ord("A")+1, tour_j[0])
+        print("Le joueur " + str(tour_j[0]+1) + " a tiré en " + m)
+        checkGameFinish(l, game)
+        tour_j[0] = (tour_j[0] +1)%2
+        sendToAll(l, joueur, game, tour_j, server)
 
+        
+    
+def main():
     # Gestion du serveur
     if(len(sys.argv) ==1):
         boats1 = randomConfiguration()
         boats2 = randomConfiguration()
         game = Game(boats1, boats2)
-
         server = createServer()
         l = [server]
         joueur = {}
-        nbp = 0
-        tour_j = 0
+        users = {}
+        sockuser = {}
+        nbp = [1]
+        nbp[0] = 0
+        tour_j= [1]
+        tour_j[0] = 0
         while(1):
             a,_,_ = select.select(l,[],[])
             for so in a:
-
                 # Nouveau socket connecté
                 if(so==server):
                     nc,_ = server.accept()
                     l.append(nc)
-                    nc.send("Bienvenue\n".encode())
-                    joueur[nbp] = nc
-                    if(nbp < 2):
-                        nc.send(("Vous êtes le joueur " +str(nbp+1)+ "\n").encode())
-                        nbp+=1
-
-                        # Démarrage de la partie (envoi des configurations initiales)
-                        if(nbp == 2):
-                            sendToAll(l, joueur, game, tour_j, server)
-                    else:
-                        nc.send("Vous êtes un observateur\n".encode())
-                        sendGame(game, -1, nc, False)
-
-                # Partie en cours
-                elif(nbp >= 2):
-                    if(so == joueur[tour_j]):
-                        m = so.recv(1500)
-                        m = m.decode()
-                        print("Le joueur " + str(tour_j+1) + " a tiré en " + m)
-                        addShot(game, int(m[1:]), ord(m[0].capitalize())-ord("A")+1, tour_j)
-                        checkGameFinish(l, game)
-                        if(len(m)==0):
-                            so.close
-                            l.remove(so)
-                        tour_j = (tour_j +1)%2
-                        sendToAll(l, joueur, game, tour_j, server)
-
+                    nc.send("US".encode())
+                else:
+                    m = so.recv(1500)
+                    m = m.decode()
+                    readMessageServer(m,so,users,joueur,game,tour_j,nbp,sockuser,l,server)
+                    if(len(m)==0):
+                        so.close
+                        l.remove(so)
 
     # Gestion d'un client (joueur / observateur)
     else:
