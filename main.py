@@ -21,6 +21,7 @@ def randomConfiguration():
 """ Envoi l'état du jeu au joueur sous forme de chaine de caractere de longueur 202 """
 """ (2 caractere pour le tour, 100 caractere pour la première config et 100 pour la deuxième) """
 def sendGame(game, player, socket, turn):
+    print("Envoi des donnees à " + str(player+1))
     if (player != -1):
         otherPlayer = (player+1)%2
         if turn:
@@ -29,7 +30,6 @@ def sendGame(game, player, socket, turn):
             data = "WT"
         data = data + getConfiguration(game.boats[player], game.shots[otherPlayer], showBoats=True)
         data = data + getConfiguration([], game.shots[player], showBoats=False)
-        print("envoi des donnees")
         socket.send(data.encode())
     # pour les observateurs
     else:
@@ -77,11 +77,13 @@ def displayGame(data):
         print("======================")
 
 """ Check if game is over and send data tu player"""
-def checkGameFinish(a, game):
+def checkGameFinish(l, game):
     if (gameOver(game) != -1):
+        print("Le joueur " + str(gameOver(game)+1) + " à gagné!")
         message = "Le joueur " + str(gameOver(game)+1) + " à gagné!"
-        for so in a:
-            so.send(message.encode())
+        for so in l:
+            if so != l[0]:
+                so.send(message.encode())
 
 """ Play a new random shot """
 def randomNewShot(shots):
@@ -157,14 +159,15 @@ def main():
                     if(so == joueur[tour_j]):
                         m = so.recv(1500)
                         m = m.decode()
-                        print(m)
-                        addShot(game, int(m[1]), ord(m[0].capitalize())-ord("A")+1, tour_j)
+                        print("Le joueur " + str(tour_j+1) + " a tiré en " + m)
+                        addShot(game, int(m[1:]), ord(m[0].capitalize())-ord("A")+1, tour_j)
+                        checkGameFinish(l, game)
                         if(len(m)==0):
                             so.close
                             l.remove(so)
                         tour_j = (tour_j +1)%2
                         sendToAll(l, joueur, game, tour_j, server)
-                        checkGameFinish(a, game)
+
 
     # Gestion d'un client (joueur / observateur)
     else:
