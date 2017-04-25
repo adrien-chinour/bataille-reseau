@@ -31,8 +31,12 @@ def sendGame(game, player, socket, turn):
         data = data + getConfiguration([], game.shots[player], showBoats=False)
         print("envoi des donnees")
         socket.send(data.encode())
-    else
-        """ parti observateur """
+    # pour les observateurs
+    else:
+        data = "WT"
+        for i in range(2):
+            data = data + getConfiguration(game.boats[i], game.shots[(i+1)%2], showBoats=True)
+        socket.send(data.encode())
 
 """ converti la configuration en une chaine de caractère contenant toute les cases de la grille """
 def getConfiguration(boats, shots=[], showBoats=True):
@@ -86,26 +90,36 @@ def randomNewShot(shots):
         (x,y) = (random.randint(1,10), random.randint(1,10))
     return (x,y)
 
+""" Permet d'envoyer les configurations a toute les connections """
+def sendToAll(sockets, joueur, game, tour_j):
+    for so in sockets:
+        if so == joueur[0]:
+            sendGame(game, 0, joueur[0], (tour_j == 0))
+        elif so == joueur[1]:
+            sendGame(game, 1, joueur[1], (tour_j == 1))
+        else:
+            sendGame(game, -1, so, False)
+
 """ Gestion des messages reçu par le client (protocole personnel) """
 def readMessage(m,socket):
 
-    """ c'est ton tour! Voici la partie actuelle, tu joue quoi ?"""
+    #c'est ton tour! Voici la partie actuelle, tu joue quoi ?
     if(m.startswith('YT')):
         displayGame(m.lstrip('YT'))
         message = input('Quelles sont les coordonnées à viser ? (ex: B2) \n')
         socket.send((format(message)).encode())
 
-    """ C'est pas ton tour mais voici l'état de la partie """
+    #C'est pas ton tour mais voici l'état de la partie
     elif(m.startswith('WT')):
         displayGame(m.lstrip('WT'))
 
-    """ Je voulais juste te dire que... """
+    #Je voulais juste te dire que...
     else:
         print(m)
 
 def main():
 
-    """ Gestion du serveur """
+    # Gestion du serveur
     if(len(sys.argv) ==1):
         boats1 = randomConfiguration()
         boats2 = randomConfiguration()
@@ -120,7 +134,7 @@ def main():
             a,_,_ = select.select(l,[],[])
             for so in a:
 
-                """ Nouveau socket connecté """
+                # Nouveau socket connecté
                 if(so==server):
                     nc,_ = server.accept()
                     l.append(nc)
@@ -130,15 +144,16 @@ def main():
                         nc.send(("Vous êtes le joueur " +str(nbp+1)+ "\n").encode())
                         nbp+=1
 
-                        """ Démarrage de la partie (envoi des configurations initiales) """
+                        # Démarrage de la partie (envoi des configurations initiales)
                         if(nbp == 2):
+                            #sendToAll(l, joueur, game, tour_j)
                             sendGame(game, 0, joueur[0], (tour_j == 0))
                             sendGame(game, 1, joueur[1], (tour_j == 1))
                     else:
-                        #nc.send("Vous êtes un observateur\n".encode())
-                        nbp+=1
+                        nc.send("Vous êtes un observateur\n".encode())
+                        sendGame(game, -1, nc, False)
 
-                """ Partie en cours """
+                # Partie en cours
                 elif(nbp >= 2):
                     if(so == joueur[tour_j]):
                         m = so.recv(1500)
@@ -149,11 +164,12 @@ def main():
                             so.close
                             l.remove(so)
                         tour_j = (tour_j +1)%2
+                        #sendToAll(l, joueur, game, tour_j)
                         sendGame(game, 0, joueur[0], (tour_j == 0))
                         sendGame(game, 1, joueur[1], (tour_j == 1))
                         checkGameFinish(a, game)
 
-    """ Gestion d'un client (joueur / observateur) """
+    # Gestion d'un client (joueur / observateur)
     else:
         client = createClient(sys.argv[1],sys.argv[2])
         l = [client]
