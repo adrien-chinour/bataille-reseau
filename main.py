@@ -91,14 +91,15 @@ def randomNewShot(shots):
     return (x,y)
 
 """ Permet d'envoyer les configurations a toute les connections """
-def sendToAll(sockets, joueur, game, tour_j):
-    for so in sockets:
-        if so == joueur[0]:
-            sendGame(game, 0, joueur[0], (tour_j == 0))
-        elif so == joueur[1]:
-            sendGame(game, 1, joueur[1], (tour_j == 1))
-        else:
-            sendGame(game, -1, so, False)
+def sendToAll(sockets, joueur, game, tour_j, server):
+    for so in sockets[1:]:
+        if so != server:
+            if so == joueur[0]:
+                sendGame(game, 0, joueur[0], (tour_j == 0))
+            elif so == joueur[1]:
+                sendGame(game, 1, joueur[1], (tour_j == 1))
+            else:
+                sendGame(game, -1, so, False)
 
 """ Gestion des messages reçu par le client (protocole personnel) """
 def readMessage(m,socket):
@@ -146,9 +147,7 @@ def main():
 
                         # Démarrage de la partie (envoi des configurations initiales)
                         if(nbp == 2):
-                            #sendToAll(l, joueur, game, tour_j)
-                            sendGame(game, 0, joueur[0], (tour_j == 0))
-                            sendGame(game, 1, joueur[1], (tour_j == 1))
+                            sendToAll(l, joueur, game, tour_j, server)
                     else:
                         nc.send("Vous êtes un observateur\n".encode())
                         sendGame(game, -1, nc, False)
@@ -164,9 +163,7 @@ def main():
                             so.close
                             l.remove(so)
                         tour_j = (tour_j +1)%2
-                        #sendToAll(l, joueur, game, tour_j)
-                        sendGame(game, 0, joueur[0], (tour_j == 0))
-                        sendGame(game, 1, joueur[1], (tour_j == 1))
+                        sendToAll(l, joueur, game, tour_j, server)
                         checkGameFinish(a, game)
 
     # Gestion d'un client (joueur / observateur)
