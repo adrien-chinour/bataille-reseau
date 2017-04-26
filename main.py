@@ -108,7 +108,14 @@ def readMessage(m,socket):
     #c'est ton tour! Voici la partie actuelle, tu joue quoi ?
     if(m.startswith('YT')):
         displayGame(m.lstrip('YT'))
-        message = input('Quelles sont les coordonnées à viser ? (ex: B2) \n')
+        correct = 1
+        while correct:
+            message = input('Quelles sont les coordonnées à viser ? (ex: B2) \n')
+            if((len(message) >= 2) & (len(message)<=3)):
+                if((ord(message[1])<=57) & (ord(message[1])>=48)):
+                    if((0<int(message[1:2])) & (int(message[1:2])<=10)):
+                        if((0<(ord(message[0].capitalize())-ord("A")+1)) & ((ord(message[0].capitalize())-ord("A")+1)<=10)):
+                            correct = 0
         socket.send((format(message)).encode())
     #C'est pas ton tour mais voici l'état de la partie
     elif(m.startswith('WT')):
@@ -163,14 +170,12 @@ def readMessageServer(m,socket,users,joueur,game,tour_j,nbp,sockuser,l,server):
             socket.send('PW')
     else:
         print(m)
-        addShot(game, int(m[1]), ord(m[0].capitalize())-ord("A")+1, tour_j[0])
+        addShot(game, int(m[1:]), ord(m[0].capitalize())-ord("A")+1, tour_j[0])
         print("Le joueur " + str(tour_j[0]+1) + " a tiré en " + m)
         checkGameFinish(l, game)
         tour_j[0] = (tour_j[0] +1)%2
         sendToAll(l, joueur, game, tour_j, server)
 
-        
-    
 def main():
     # Gestion du serveur
     if(len(sys.argv) ==1):
