@@ -141,7 +141,7 @@ def readMessageServer(m,socket,users,joueur,game,tour_j,nbp,sockuser,l,server):
                 find = 1
                 for key, info_user in joueur.items(): 
                     if(user == info_user[1]):
-                        joueur[info_user[0]] = (joueur[info_user[0]][0],m)
+                        joueur[key] = (socket,m)
                         break
                 sockuser[socket] = m
                 break
@@ -169,7 +169,11 @@ def readMessageServer(m,socket,users,joueur,game,tour_j,nbp,sockuser,l,server):
             # Démarrage de la partie (envoi des configurations initiales)
             if(nbp[0] == 2):
                 sendToAll(l, joueur, game, tour_j[0], server)
-            socket.send('bon mot de passe'.encode())
+            else:
+                for key, info_user in joueur.items():
+                    if(sockuser[socket] == info_user[1]):
+                        sendGame(game, key, joueur[key][0], (tour_j[0] == key))
+                        break
         else:
             socket.send('PW')
     elif(m.startswith('AS')):
