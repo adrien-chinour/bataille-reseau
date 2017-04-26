@@ -77,13 +77,18 @@ def displayGame(data):
         print("======================")
 
 """ Check if game is over and send data tu player"""
-def checkGameFinish(l, game):
+def checkGameFinish(l, game, nbp):
     if (gameOver(game) != -1):
         print("Le joueur " + str(gameOver(game)+1) + " à gagné!")
-        message = "Le joueur " + str(gameOver(game)+1) + " à gagné!"
+        message = "END" + str(gameOver(game)+1)
         for so in l:
             if so != l[0]:
                 so.send(message.encode())
+        boats1 = randomConfiguration()
+        boats2 = randomConfiguration()
+        game = Game(boats1, boats2)
+        nbp[0] = 0
+
 
 """ Play a new random shot """
 def randomNewShot(shots):
@@ -127,6 +132,10 @@ def readMessage(m,socket):
     elif(m == 'PW'):
         password = input('Entrez votre mot de passe:\n')
         socket.send(('PW'+(format(password))).encode())
+    elif(m.startswith('END')):
+        print("Partie terminé : Le joueur " + m.lstrip('END') + " à gagné!")
+        message = input('Envie de jouer ? (o/n):\n')
+        socket.send(('PLAY'+format(message.capitalize())).encode())
     #Je voulais juste te dire que...
     else:
         print(m)
@@ -139,9 +148,9 @@ def readMessageServer(m,socket,users,joueur,game,tour_j,nbp,sockuser,l,server):
         for user in users:#ajout de preuve de deconnection du joueur //!\\
             if(user == m):
                 find = 1
-                for key, info_user in joueur.items(): 
+                for key, info_user in joueur.items():
                     if(user == info_user[1]):
-                        joueur[info_user[0]] = (joueur[info_user[0]][0],m)
+                        joueur[key] = (socket,m)
                         break
                 sockuser[socket] = m
                 break
@@ -177,9 +186,13 @@ def readMessageServer(m,socket,users,joueur,game,tour_j,nbp,sockuser,l,server):
         print(m)
         addShot(game, int(m[1:]), ord(m[0].capitalize())-ord("A")+1, tour_j[0])
         print("Le joueur " + str(tour_j[0]+1) + " a tiré en " + m)
-        checkGameFinish(l, game)
+        checkGameFinish(l, game, nbp)
         tour_j[0] = (tour_j[0] +1)%2
         sendToAll(l, joueur, game, tour_j, server)
+    elif(m.startswith('PLAY')):
+        if m.lstrip('PLAY') == 'O' and nbp[0] <= 2:
+            joueur[nbp[0]] = (socket,sockuser[socket])
+            nbp[0] =+ 1
 
 def main():
     # Gestion du serveur
@@ -187,6 +200,7 @@ def main():
         boats1 = randomConfiguration()
         boats2 = randomConfiguration()
         game = Game(boats1, boats2)
+        print("Génération de la partie terminé.")
         server = createServer()
         l = [server]
         joueur = {}
