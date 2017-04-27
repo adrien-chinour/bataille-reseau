@@ -154,7 +154,7 @@ def readMessage(m,socket):
         message = input('Envie de jouer ? (o/n):\n')
         socket.send(('PLAY'+format(message.capitalize())).encode())
     elif(m.startswith('WC')):
-        if(m[2] != "0"):
+        if(m.lstrip('WC') != "0"):
             num = m[2]
             print("Hey " + m[3:] + "! Tu es le joueur n°" + num + ".")
         else:

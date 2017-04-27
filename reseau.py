@@ -9,7 +9,7 @@ import sys,os
 def createServer():
     #partie socket TCP
     s = socket.socket(socket.AF_INET6,socket.SOCK_STREAM,0)
-    s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+    s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1) #au cas ou des connection serait encore en cours sur le port
     s.bind(('',7777))
     s.listen(1)
     #partie initialisation TLS
