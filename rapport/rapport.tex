@@ -32,15 +32,28 @@ Et la deuxième créer un socket pour le client et le connecte au serveur. Code 
 
 \begin{verbatim}
 def createServer():
-    s = socket.socket(socket.AF_INET6,socket.SOCK_STREAM,0)
-    s.bind(('',7777))
-    s.listen(1)
-    return s
+    #partie socket simple
+    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM,0)
+    s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+    #partie initialisation TLS
+    context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    context.load_cert_chain('server.crt','server.key')
+    sslconn = context.wrap_socket(s,server_side=True)
+    #fin initialisation
+    sslconn.bind(('',7777))
+    sslconn.listen(1)
+    return sslconn
 
+""" Connection du client au serveur """
 def createClient(IP,port):
-    s = socket.socket(socket.AF_INET6,socket.SOCK_STREAM,0)
-    s.connect((IP,int(float(port))))
-    return s
+    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM,0)
+    #partie initialisation TLS
+    context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    context.load_verify_locations('ca.crt')
+    sslconn = context.wrap_socket(s, server_hostname = IP)
+    #fin initialisation
+    sslconn.connect((IP, int(float(port))))
+    return sslconn
 \end{verbatim}
 
 \section{Notre protocole personnel}
@@ -50,21 +63,21 @@ Comme pour la partie precedente nous avons créer deux fonctions une executer pa
 }
 
 \textnormal{
-\\Notre protocole est basé sur un prefix qui contient le type de message envoyé. Cela nous permet de transmettre le minimum d'information et que le client est le choix de son affichage. Il peut par exemple modifier sa couche application en créant une interface graphique sans que cela affecte les communications serveur/client. Par exemple pour indiquer au client que le serveur attent un identifiant pour le connecter au serveur il lui envoie 'US'.\\
+\\Notre protocole est basé sur un prefix qui contient le type de message envoyé. Cela nous permet de transmettre le minimum d'information et que le client est le choix de son affichage. Il peut par exemple modifier sa couche application en créant une interface graphique sans que cela affecte les communications serveur/client. Par exemple pour indiquer au client que le serveur attent un identifiant pour le connecter au serveur il lui envoie 'US', lorsque le joueur a renvoyé un nom d'utilisateur le serveur lui demande un mot de passe. Si le mot de passe renvoyé par le joueur est bon ou si c'est un nouveau compte, le joueur est identifié.\\
 Pour le plus important - c'est-à-dire l'envoi de la partie en cours aux joueurs et aux observateurs - notre protocole envoi le prefix 'YT' (your turn) ou 'WT' (wrong turn) suivi des 200 caractères composant la grille du client. De cette manière on évite a chaque joueur de connaitre la partie de l'adversaire et d'avoir à effectuer des calculs inutiles puisqu'il a juste a convertir les 200 caractères de la grille comme il le désire.\\
 Dans l'autre sens, si le client a reçu l'information commençant par 'YT' alors les coordonnées qu'il tape sont envoyées au serveur à l'aide du prefix 'AS' (add shot) pour que le serveur ajoute le tir à la partie en cours.}
 
 \section{Les extensions réalisées}
 
 \textnormal{
-Pour rendre le programme plus intéressant et plus complet en plus du simple échange coordonnées / partie. Nous avons réaliser plusieurs extensions surtout pour améliorant les échanges serveurs / clients.
+Pour rendre le programme plus intéressant et plus complet en plus du simple échange coordonnées / partie. Nous avons réalisé plusieures extensions surtout pour améliorer les échanges serveurs / clients.
 }
 
 \subsection{Système de compte}
 
 \subsection{Possibilité de rejouer}
 \textnormal{
-Pour éviter d'avoir à redémarrer le serveur après la fin d'une partie, on a ajouter a notre protocole un prefix 'END' suivi du numéro du joueur gagnant que le serveur envoi au client pour lui signaler que la partie est terminé. Le client a alors le choix entre jouer la prochaine partie ou devenir observateur. Il répond à l'aide du prefix 'PLAY' suivi de sa réponse.\\
+Pour éviter d'avoir à redémarrer le serveur après la fin d'une partie, on a ajouté à notre protocole un préfixe 'END' suivi du numéro du joueur gagnant que le serveur envoi au client pour lui signaler que la partie est terminé. Le client a alors le choix entre jouer la prochaine partie ou devenir observateur. Il répond à l'aide du préfixe 'PLAY' suivi de sa réponse.\\
 Dès que deux clients ont décidé de rejouer alors une nouvelle partie commence.
 }
 \begin{verbatim}
@@ -90,7 +103,7 @@ elif(m.startswith('END')):
 
 \subsection{Les observateurs}
 \textnormal{
-En plus des clients "joueur", il est intéressant d'ajouter des clients "observateur" qui peuvent voir la partie en cours.\\
+En plus des clients ``joueur'', il est intéressant d'ajouter des clients "observateur" qui peuvent voir la partie en cours.\\
 Pour faire ça, on a ajouté un cas particulier à notre fonction qui envoie la partie aux clients pour qu'elle envoie les bateaux des deux joueurs. Le serveur envoi donc les 200 caractères de la partie avec le prefix 'WT' car ce n'est pas à lui de jouer.
 }
 \begin{verbatim}
@@ -105,5 +118,7 @@ else:
 \end{verbatim}
 
 \subsection{Connexions sécurisées}
+Dans ce projet nous utilisons un système de mot de passe donc il était indispensable de faire des connexions sécurisées, pour ça nous avons opté pour le protocole TLS qui a l'avantage d'être très fiable et  que nous avons eu l'occasion d'essayer en cours. Nous n'avions pas d'autorité de certification sous la main et avons donc décidé de créer notre propre certificat ce qui enlève beaucoup de sécurité au système. \\
+De plus le client envoie un hash du mot de passe calculé à partir de l'algorithme sha224, ce qui permet une meilleure sécurité du mot de passe.
 
 \end{document}
