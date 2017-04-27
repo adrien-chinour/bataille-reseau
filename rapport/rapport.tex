@@ -69,6 +69,10 @@ Dès que deux clients ont décidé de rejouer alors une nouvelle partie commence
 }
 
 \subsection{Les observateurs}
+\textnormal{
+En plus des clients joueur, il est intéressant d'ajouter des clients observateurs qui peuvent voir la partie en cours et dès que la partie est terminée de devenir joueur à leur tour.\\
+Pour faire ça, on a ajouté un cas particulier à notre fonction qui envoi la partie aux clients pour qu'elle envoie les bateaux des deux joueurs. Le serveur envoi ça avce le prefix 'WT' car ce n'est pas à lui de jouer.
+}
 
 \subsection{Connexions sécurisées}
 
