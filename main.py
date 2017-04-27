@@ -126,6 +126,7 @@ def sendToAll(sockets, server):
 
 """ Gestion des messages reçu par le client (protocole personnel) """
 def readMessage(m,socket):
+    global game
     #c'est ton tour! Voici la partie actuelle, tu joue quoi ?
     if(m.startswith('YT')):
         displayGame(m[2:])
@@ -155,13 +156,11 @@ def readMessage(m,socket):
         socket.send(('PLAY'+format(message.capitalize())).encode())
     elif(m.startswith('WC')):
         if(m.lstrip('WC') != "0"):
-            num = m[2]
-            print("Hey " + m[3:] + "! Tu es le joueur n°" + num + ".")
+            print("Hey! Tu est le joueur n°" + m[2:] + ".")
         else:
-            print("Hey " + m[3:] + "! Tu es un observateur.")
-    elif(m.startswith('CRT')):
-        verifCertif(socket)
-        socket.send('OKCRT'.encode())
+            print("Hey! Tu es un observateur.")
+    else:
+        print(m)
 
 """Gestion des messages reçu par le serveur (protocole personnel)"""
 def readMessageServer(m,socket,l,server):
@@ -182,7 +181,7 @@ def readMessageServer(m,socket,l,server):
             sockuser[socket] = m
             users[m] = ('')
         socket.send('PW'.encode())
-
+        
     elif(m.startswith('PW')):
         m = m[2:]
         print(m)
@@ -191,20 +190,22 @@ def readMessageServer(m,socket,l,server):
             joueur[nbp] = (socket,sockuser[socket])
             nbp+=1
             if(nbp <= 2):
-                socket.send(("WC"+str(nbp)+sockuser[socket]).encode())
+                socket.send(("WC"+str(nbp)).encode())
                 # Démarrage de la partie (envoi des configurations initiales)
                 if(nbp == 2):
                     sendToAll(l,server)
             else:
-                socket.send(("WC0"+sockuser[socket]).encode())
+                socket.send("WC0".encode())
                 sendGame(-1, socket, False)
         elif(users[sockuser[socket]] == m):
             for key, info_user in joueur.items():
                 if((sockuser[socket] == info_user[1])):
                     joueur[key] = (socket,sockuser[socket])
                     if(key < 2):
+                        print(info_user[1])
                         socket.send(("WC" + str(key+1) + sockuser[socket]).encode())
                     else:
+                        print(info_user[1])
                         socket.send(("WC0" + info_user[1]).encode())
                     if(nbp>=2):
                         if(key < 2):
@@ -214,7 +215,7 @@ def readMessageServer(m,socket,l,server):
                     break
         else:
             socket.send('PW'.encode())
-
+            
     elif(m.startswith('AS')):
         m = m[2:]
         print(m)
@@ -227,20 +228,21 @@ def readMessageServer(m,socket,l,server):
         if m.lstrip('PLAY') == 'O' and nbp < 2:
             joueur[nbp] = (socket,users[sockuser[socket]])
             nbp += 1
-            socket.send(("WC"+str(nbp)+sockuser[socket]).encode())
+            socket.send(("WC"+str(nbp)).encode())
             print(str(nbp))
             if nbp == 2:
                 print("restart game")
                 sendToAll(l, server)
         else:
-            socket.send(("WC0" + sockuser[socket]).encode())
+            socket.send("WC0".encode())
     elif(m.startswith('CRT')):
         f = open(('ca.crt'),'rb')
-        l = f.read(4096)
-        socket.send(l)
+        l = f.read(1024)
+        while(l):
+            s.send(l)
+            l = socket.send(1024)
         f.close()
-    elif(m.startswith('OKCRT')):
-        socket.send('US'.encode())
+        
 
 def main():
     global game
@@ -265,7 +267,7 @@ def main():
                 if(so==server):
                     nc,_ = server.accept()
                     l.append(nc)
-                    nc.send("CRT".encode())
+                    nc.send("US".encode())
                 else:
                     m = so.recv(1500)
                     m = m.decode()
@@ -288,6 +290,7 @@ def main():
                 client = createClient(sys.argv[1],sys.argv[2])
                 l = [client]
             for so in a:
+                verifCertif(socket)
                 m = so.recv(1500)
                 if(len(m)==0):
                     so.shutdown(2) #coupe la connexion dans les 2 sens
@@ -298,3 +301,5 @@ def main():
 
 
 main()
+#createKeyServer()
+#createAutorite()
