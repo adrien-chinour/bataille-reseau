@@ -154,7 +154,7 @@ def readMessage(m,socket):
         message = input('Envie de jouer ? (o/n):\n')
         socket.send(('PLAY'+format(message.capitalize())).encode())
     elif(m.startswith('WC')):
-        if(m.lstrip('WC') != "0"):
+        if(m[2] != "0"):
             num = m[2]
             print("Hey " + m[3:] + "! Tu es le joueur n°" + num + ".")
         else:
@@ -202,10 +202,8 @@ def readMessageServer(m,socket,l,server):
                 if((sockuser[socket] == info_user[1])):
                     joueur[key] = (socket,sockuser[socket])
                     if(key < 2):
-                        print(info_user[1])
                         socket.send(("WC" + str(key+1) + sockuser[socket]).encode())
                     else:
-                        print(info_user[1])
                         socket.send(("WC0" + info_user[1]).encode())
                     if(nbp>=2):
                         if(key < 2):
