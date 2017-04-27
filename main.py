@@ -10,7 +10,7 @@ import hashlib
 # global variable
 game = None     #stock la partie en cours
 joueur = {}     #dictionnaire des joueurs |clé:numéro du joueur -> (socket,username)
-users = {}      #dictionnaire des clients |clé:username -> passwordS
+users = {}      #dictionnaire des clients |clé:username -> password
 sockuser = {}   #dictionnaire des sockets |clé:socket -> username
 nbp = 0         #nombre de joueurs
 tour_j = 0      #tour joueur
@@ -155,9 +155,10 @@ def readMessage(m,socket):
         socket.send(('PLAY'+format(message.capitalize())).encode())
     elif(m.startswith('WC')):
         if(m.lstrip('WC') != "0"):
-            print("Hey! Tu est le joueur n°" +m.lstrip('WC')+ ".")
+            num = m[2]
+            print("Hey " + m[3:] + "! Tu es le joueur n°" + num + ".")
         else:
-            print("Hey! Tu es un observateur.")
+            print("Hey " + m[3:] + "! Tu es un observateur.")
     else:
         print(m)
 
@@ -185,22 +186,25 @@ def readMessageServer(m,socket,l,server):
         print(m)
         if(users[sockuser[socket]] == ''):
             users[sockuser[socket]] = m
-            joueur[nbp] = (socket,m)
+            joueur[nbp] = (socket,sockuser[socket])
             nbp+=1
             if(nbp <= 2):
-                socket.send(("WC"+str(nbp)).encode())
+                socket.send(("WC"+str(nbp)+sockuser[socket]).encode())
                 # Démarrage de la partie (envoi des configurations initiales)
                 if(nbp == 2):
                     sendToAll(l,server)
             else:
-                socket.send("WC0".encode())
+                socket.send(("WC0"+sockuser[socket]).encode())
                 sendGame(-1, socket, False)
         elif(users[sockuser[socket]] == m):
             for key, info_user in joueur.items():
-                if(users[sockuser[socket]] == info_user[1]):
-                    joueur[key] = (socket,users[sockuser[socket]])
+                if(key < 2):
+                    print(info_user[1])
+                if(sockuser[socket] == info_user[1]):
+                    joueur[key] = (socket,sockuser[socket])
                     break
-            sockuser[socket] = users[sockuser[socket]]
+
+
             # Démarrage de la partie (envoi des configurations initiales)
             if(nbp == 2):
                 sendToAll(l, server)
@@ -223,13 +227,13 @@ def readMessageServer(m,socket,l,server):
         if m.lstrip('PLAY') == 'O' and nbp < 2:
             joueur[nbp] = (socket,users[sockuser[socket]])
             nbp += 1
-            socket.send(("WC"+str(nbp)).encode())
+            socket.send(("WC"+str(nbp)+sockuser[socket]).encode())
             print(str(nbp))
             if nbp == 2:
                 print("restart game")
                 sendToAll(l, server)
         else:
-            socket.send("WC0".encode())
+            socket.send(("WC0" + sockuser[socket]).encode())
 
 def main():
     global game
