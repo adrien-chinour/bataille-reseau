@@ -7,10 +7,14 @@ import sys,os
 
 """ Demarrage du serveur et ecoute sur le port 7777 """
 def createServer():
+    #partie socket TCP
     s = socket.socket(socket.AF_INET6,socket.SOCK_STREAM,0)
     s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1) #au cas ou des connection serait encore en cours sur le port
     s.bind(('',7777))
     s.listen(1)
+    #partie initialisation TLS
+    createKeyServer()
+    createAutorite()
     return s
 
 """ Connection du client au serveur """
@@ -38,25 +42,22 @@ def createAutorite():
         p = subprocess.Popen(createCertif, stdout=subprocess.PIPE)
 
 def createKeyServer():
-    tree = b''
-    #cmdexist = ['if', '[','-f','"server.key"', ']',';','then','echo','"ok"',';','fi']
-    #p = subprocess.Popen(cmdexist, stdout=subprocess.PIPE)
     if(not os.path.isfile('server.key')):
         cmd = ['certtool','--generate-privkey','--outfile', 'server.key']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    #for line in p.stdout:
-    #    tree+=line
-    #print(tree.decode())
-    #p.wait()
-    #print(p.returncode)
 
 def verifCertif(socket):# le client récupère un certificat
     if(not os.path.isfile('ca.crt')):
         socket.send('CRT'.encode())
         f = open('ca.crt','wb')
-        l = socket.recv(1024)
-        while(l):
-            f.write(l)
-            l = socket.recv(1024)
+        l = socket.recv(4096)
+        f.write(l)
         f.close()
+<<<<<<< HEAD
     print('ok certif\n')
+=======
+    print('Certificat reçu\n')
+
+
+    
+>>>>>>> d9a36114700d9546f9cd2de0004526cedaa4b84c

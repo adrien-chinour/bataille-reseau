@@ -126,7 +126,6 @@ def sendToAll(sockets, server):
 
 """ Gestion des messages reçu par le client (protocole personnel) """
 def readMessage(m,socket):
-    global game
     #c'est ton tour! Voici la partie actuelle, tu joue quoi ?
     if(m.startswith('YT')):
         displayGame(m[2:])
@@ -160,8 +159,9 @@ def readMessage(m,socket):
             print("Hey " + m[3:] + "! Tu es le joueur n°" + num + ".")
         else:
             print("Hey " + m[3:] + "! Tu es un observateur.")
-    else:
-        print(m)
+    elif(m.startswith('CRT')):
+        verifCertif(socket)
+        socket.send('OKCRT'.encode())
 
 """Gestion des messages reçu par le serveur (protocole personnel)"""
 def readMessageServer(m,socket,l,server):
@@ -236,11 +236,11 @@ def readMessageServer(m,socket,l,server):
             socket.send(("WC0" + sockuser[socket]).encode())
     elif(m.startswith('CRT')):
         f = open(('ca.crt'),'rb')
-        l = f.read(1024)
-        while(l):
-            s.send(l)
-            l = socket.send(1024)
+        l = f.read(4096)
+        socket.send(l)
         f.close()
+    elif(m.startswith('OKCRT')):
+        socket.send('US'.encode())
 
 def main():
     global game
@@ -265,7 +265,7 @@ def main():
                 if(so==server):
                     nc,_ = server.accept()
                     l.append(nc)
-                    nc.send("US".encode())
+                    nc.send("CRT".encode())
                 else:
                     m = so.recv(1500)
                     m = m.decode()
@@ -288,7 +288,6 @@ def main():
                 client = createClient(sys.argv[1],sys.argv[2])
                 l = [client]
             for so in a:
-                verifCertif(so)
                 m = so.recv(1500)
                 if(len(m)==0):
                     so.shutdown(2) #coupe la connexion dans les 2 sens
@@ -299,5 +298,3 @@ def main():
 
 
 main()
-#createKeyServer()
-#createAutorite()
