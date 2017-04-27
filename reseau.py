@@ -36,7 +36,7 @@ def createAutorite():
     if(not os.path.isfile('ca.crt')):
         createCertif = ['certtool', '--generate-self-signed', '--template', 'cert.cfg', '--load-privkey', 'ca.key', '--outfile', 'ca.crt']
         p = subprocess.Popen(createCertif, stdout=subprocess.PIPE)
-    
+
 def createKeyServer():
     tree = b''
     #cmdexist = ['if', '[','-f','"server.key"', ']',';','then','echo','"ok"',';','fi']
@@ -52,7 +52,7 @@ def createKeyServer():
 
 def verifCertif(socket):# le client récupère un certificat
     if(not os.path.isfile('ca.crt')):
-        socket.send('CRT')
+        socket.send('CRT'.encode())
         f = open('ca.crt','wb')
         l = socket.recv(1024)
         while(l):
@@ -60,6 +60,3 @@ def verifCertif(socket):# le client récupère un certificat
             l = socket.recv(1024)
         f.close()
     print('ok certif\n')
-
-
-    
