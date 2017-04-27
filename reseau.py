@@ -55,7 +55,7 @@ def verifCertif(socket):# le client récupère un certificat
         socket.send('CRT')
         f = open('ca.crt','wb')
         l = socket.recv(1024)
-        while(l)
+        while(l):
             f.write(l)
             l = socket.recv(1024)
         f.close()
