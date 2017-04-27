@@ -5,6 +5,7 @@ from reseau import *
 import  random
 import time
 import sys
+import hashlib
 
 # global variable
 game = None     #stock la partie en cours
@@ -146,6 +147,7 @@ def readMessage(m,socket):
         socket.send(('US'+(format(username))).encode())
     elif(m == 'PW'):
         password = input('Entrez votre mot de passe:\n')
+        password = hashlib.sha224(password.encode()).hexdigest()
         socket.send(('PW'+(format(password))).encode())
     elif(m.startswith('END')):
         print("Partie terminé : Le joueur " + m.lstrip('END') + " à gagné!")
@@ -180,6 +182,7 @@ def readMessageServer(m,socket,l,server):
         socket.send('PW'.encode())
     elif(m.startswith('PW')):
         m = m[2:]
+        print(m)
         if(users[sockuser[socket]] == ''):
             users[sockuser[socket]] = m
             joueur[nbp] = (socket,m)
@@ -193,18 +196,21 @@ def readMessageServer(m,socket,l,server):
                 socket.send("WC0".encode())
                 sendGame(-1, socket, False)
         elif(users[sockuser[socket]] == m):
-            joueur[nbp] = (socket,users[sockuser[socket]])
-            nbp+=1
+            for key, info_user in joueur.items():
+                if(users[sockuser[socket]] == info_user[1]):
+                    joueur[key] = (socket,users[sockuser[socket]])
+                    break
+            sockuser[socket] = users[sockuser[socket]]
             # Démarrage de la partie (envoi des configurations initiales)
             if(nbp == 2):
                 sendToAll(l, server)
             else:
                 for key, info_user in joueur.items():
-                    if(sockuser[socket] == info_user[1]):
+                    if((sockuser[socket] == info_user[1]) and (nbp>=2)):
                         sendGame(key, joueur[key][0], (tour_j == key))
                         break
         else:
-            socket.send('PW')
+            socket.send('PW'.encode())
     elif(m.startswith('AS')):
         m = m[2:]
         print(m)
