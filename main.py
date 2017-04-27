@@ -290,7 +290,6 @@ def main():
                 client = createClient(sys.argv[1],sys.argv[2])
                 l = [client]
             for so in a:
-                verifCertif(socket)
                 m = so.recv(1500)
                 if(len(m)==0):
                     so.shutdown(2) #coupe la connexion dans les 2 sens
@@ -301,5 +300,3 @@ def main():
 
 
 main()
-#createKeyServer()
-#createAutorite()
