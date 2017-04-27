@@ -7,6 +7,7 @@ import time
 import sys
 import hashlib
 
+
 # global variable
 game = None     #stock la partie en cours
 joueur = {}     #dictionnaire des joueurs |clé:numéro du joueur -> (socket,username)
@@ -128,7 +129,7 @@ def readMessage(m,socket):
     global game
     #c'est ton tour! Voici la partie actuelle, tu joue quoi ?
     if(m.startswith('YT')):
-        displayGame(m.lstrip('YT'))
+        displayGame(m[2:])
         correct = 1
         while correct:
             message = input('Quelles sont les coordonnées à viser ? (ex: B2) \n')
@@ -141,7 +142,7 @@ def readMessage(m,socket):
         socket.send(('AS'+(format(message))).encode())
     #C'est pas ton tour mais voici l'état de la partie
     elif(m.startswith('WT')):
-        displayGame(m.lstrip('WT'))
+        displayGame(m[2:])
     elif(m == 'US'):
         username = input('Entrez votre nom d\'utilisateur:\n')
         socket.send(('US'+(format(username))).encode())
@@ -150,7 +151,7 @@ def readMessage(m,socket):
         password = hashlib.sha224(password.encode()).hexdigest()
         socket.send(('PW'+(format(password))).encode())
     elif(m.startswith('END')):
-        print("Partie terminé : Le joueur " + m.lstrip('END') + " à gagné!")
+        print("Partie terminé : Le joueur " + m[3:] + " à gagné!")
         message = input('Envie de jouer ? (o/n):\n')
         socket.send(('PLAY'+format(message.capitalize())).encode())
     elif(m.startswith('WC')):
@@ -233,6 +234,13 @@ def readMessageServer(m,socket,l,server):
                 sendToAll(l, server)
         else:
             socket.send(("WC0" + sockuser[socket]).encode())
+    elif(m.startswith('CRT')):
+        f = open(('ca.crt'),'rb')
+        l = f.read(1024)
+        while(l):
+            s.send(l)
+            l = socket.send(1024)
+        f.close()
 
 def main():
     global game
@@ -280,6 +288,7 @@ def main():
                 client = createClient(sys.argv[1],sys.argv[2])
                 l = [client]
             for so in a:
+                verifCertif(socket)
                 m = so.recv(1500)
                 if(len(m)==0):
                     so.shutdown(2) #coupe la connexion dans les 2 sens
@@ -290,3 +299,5 @@ def main():
 
 
 main()
+#createKeyServer()
+#createAutorite()
