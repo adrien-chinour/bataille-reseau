@@ -10,7 +10,7 @@ import hashlib
 # global variable
 game = None     #stock la partie en cours
 joueur = {}     #dictionnaire des joueurs |clé:numéro du joueur -> (socket,username)
-users = {}      #dictionnaire des clients |clé:username -> passwordS
+users = {}      #dictionnaire des clients |clé:username -> password
 sockuser = {}   #dictionnaire des sockets |clé:socket -> username
 nbp = 0         #nombre de joueurs
 tour_j = 0      #tour joueur
@@ -180,12 +180,13 @@ def readMessageServer(m,socket,l,server):
             sockuser[socket] = m
             users[m] = ('')
         socket.send('PW'.encode())
+        
     elif(m.startswith('PW')):
         m = m[2:]
         print(m)
         if(users[sockuser[socket]] == ''):
             users[sockuser[socket]] = m
-            joueur[nbp] = (socket,m)
+            joueur[nbp] = (socket,sockuser[socket])
             nbp+=1
             if(nbp <= 2):
                 socket.send(("WC"+str(nbp)).encode())
@@ -197,20 +198,23 @@ def readMessageServer(m,socket,l,server):
                 sendGame(-1, socket, False)
         elif(users[sockuser[socket]] == m):
             for key, info_user in joueur.items():
-                if(users[sockuser[socket]] == info_user[1]):
-                    joueur[key] = (socket,users[sockuser[socket]])
+                if((sockuser[socket] == info_user[1])):
+                    joueur[key] = (socket,sockuser[socket])
+                    if(key < 2):
+                        print(info_user[1])
+                        socket.send(("WC" + str(key+1) + sockuser[socket]).encode())
+                    else:
+                        print(info_user[1])
+                        socket.send(("WC0" + info_user[1]).encode())
+                    if(nbp>=2):
+                        if(key < 2):
+                            sendGame(key, socket, (tour_j == key))
+                        else:
+                            sendGame(-1, socket)
                     break
-            sockuser[socket] = users[sockuser[socket]]
-            # Démarrage de la partie (envoi des configurations initiales)
-            if(nbp == 2):
-                sendToAll(l, server)
-            else:
-                for key, info_user in joueur.items():
-                    if((sockuser[socket] == info_user[1]) and (nbp>=2)):
-                        sendGame(key, joueur[key][0], (tour_j == key))
-                        break
         else:
             socket.send('PW'.encode())
+            
     elif(m.startswith('AS')):
         m = m[2:]
         print(m)
