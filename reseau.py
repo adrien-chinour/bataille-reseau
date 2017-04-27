@@ -18,3 +18,12 @@ def createClient(IP,port):
     s.connect((IP,int(float(port))))
     """ Note : pour une connection en local a la place de IP metre '' (bug chez moi) """
     return s
+
+def sendMessage(sender,recipient,message,IP,port):
+    try:
+        recipient.send(message)
+    except OSError:
+        l[0].shutdown(2)
+        l[0].close()
+        client = createClient(sys.argv[1],sys.argv[2])
+        l = [client]

@@ -9,10 +9,10 @@ import hashlib
 
 # global variable
 game = None     #stock la partie en cours
-joueur = {}     #dictionnaire des joueurs
-users = {}      #dictionnaire des clients
-sockuser = {}   #dictionnaire des sockets
-nbp = 0         #nombre de joueur
+joueur = {}     #dictionnaire des joueurs |clé:numéro du joueur -> (socket,username)
+users = {}      #dictionnaire des clients |clé:username -> passwordS
+sockuser = {}   #dictionnaire des sockets |clé:socket -> username
+nbp = 0         #nombre de joueurs
 tour_j = 0      #tour joueur
 
 """ generation d'une configuration random """
@@ -241,7 +241,14 @@ def main():
         server = createServer()
         l = [server]
         while(1):
-            a,_,_ = select.select(l,[],[])
+            try:
+                a,_,_ = select.select(l,[],[])
+            except select.error:
+                server.shutdown(2)
+                server.close()
+                l.remove(server)
+                server = createServer()
+                l.append(server)
             for so in a:
                 # Nouveau socket connecté
                 if(so==server):
@@ -256,18 +263,27 @@ def main():
                         so.close
                         l.remove(so)
 
+
     # Gestion d'un client (joueur / observateur)
     else:
         client = createClient(sys.argv[1],sys.argv[2])
         l = [client]
         while(1):
-            a,_,_ = select.select(l,[],[])
+            try:
+                a,_,_ = select.select(l,[],[])
+            except select.error:
+                l.shutdown(2)
+                l.close()
+                client = createClient(sys.argv[1],sys.argv[2])
+                l = [client]
             for so in a:
                 m = so.recv(1500)
                 if(len(m)==0):
-                    so.close
+                    so.shutdown(2) #coupe la connexion dans les 2 sens
+                    so.close()
                     l.remove(so)
                 else:
                     readMessage(m.decode(),so)
+
 
 main()
