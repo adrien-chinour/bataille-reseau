@@ -181,6 +181,7 @@ def readMessageServer(m,socket,l,server):
             sockuser[socket] = m
             users[m] = ('')
         socket.send('PW'.encode())
+
     elif(m.startswith('PW')):
         m = m[2:]
         print(m)
@@ -198,23 +199,23 @@ def readMessageServer(m,socket,l,server):
                 sendGame(-1, socket, False)
         elif(users[sockuser[socket]] == m):
             for key, info_user in joueur.items():
-                if(key < 2):
-                    print(info_user[1])
-                if(sockuser[socket] == info_user[1]):
+                if((sockuser[socket] == info_user[1])):
                     joueur[key] = (socket,sockuser[socket])
+                    if(key < 2):
+                        print(info_user[1])
+                        socket.send(("WC" + str(key+1) + sockuser[socket]).encode())
+                    else:
+                        print(info_user[1])
+                        socket.send(("WC0" + info_user[1]).encode())
+                    if(nbp>=2):
+                        if(key < 2):
+                            sendGame(key, socket, (tour_j == key))
+                        else:
+                            sendGame(-1, socket)
                     break
-
-
-            # Démarrage de la partie (envoi des configurations initiales)
-            if(nbp == 2):
-                sendToAll(l, server)
-            else:
-                for key, info_user in joueur.items():
-                    if((sockuser[socket] == info_user[1]) and (nbp>=2)):
-                        sendGame(key, joueur[key][0], (tour_j == key))
-                        break
         else:
             socket.send('PW'.encode())
+
     elif(m.startswith('AS')):
         m = m[2:]
         print(m)
