@@ -53,11 +53,4 @@ def verifCertif(socket):# le client récupère un certificat
         l = socket.recv(4096)
         f.write(l)
         f.close()
-<<<<<<< HEAD
-    print('ok certif\n')
-=======
     print('Certificat reçu\n')
-
-
-    
->>>>>>> d9a36114700d9546f9cd2de0004526cedaa4b84c
