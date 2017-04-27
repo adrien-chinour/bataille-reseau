@@ -9,7 +9,7 @@ import ssl
 """ Demarrage du serveur et ecoute sur le port 7777 """
 def createServer():
     #partie socket simple
-    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM,0)
+    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM,0) #remplacer AF_INET par AF_INET6
     s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
     #partie initialisation TLS
     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -22,7 +22,7 @@ def createServer():
 
 """ Connection du client au serveur """
 def createClient(IP,port):
-    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM,0)
+    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM,0) #remplacer AF_INET par AF_INET6
     #partie initialisation TLS
     context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
     context.load_verify_locations('ca.crt')
