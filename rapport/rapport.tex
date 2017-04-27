@@ -67,12 +67,42 @@ Pour rendre le programme plus intéressant et plus complet en plus du simple éc
 Pour éviter d'avoir à redémarrer le serveur après la fin d'une partie, on a ajouter a notre protocole un prefix 'END' suivi du numéro du joueur gagnant que le serveur envoi au client pour lui signaler que la partie est terminé. Le client a alors le choix entre jouer la prochaine partie ou devenir observateur. Il répond à l'aide du prefix 'PLAY' suivi de sa réponse.\\
 Dès que deux clients ont décidé de rejouer alors une nouvelle partie commence.
 }
+\begin{verbatim}
+#partie serveur
+elif(m.startswith('PLAY')):
+    if m.lstrip('PLAY') == 'O' and nbp < 2:
+        joueur[nbp] = (socket,users[sockuser[socket]])
+        nbp += 1
+        socket.send(("WC"+str(nbp)+sockuser[socket]).encode())
+        print(str(nbp))
+        if nbp == 2:
+            print("restart game")
+            sendToAll(l, server)
+    else:
+        socket.send(("WC0" + sockuser[socket]).encode())
+
+#partie client
+elif(m.startswith('END')):
+    print("Partie terminé : Le joueur " + m[3:] + " à gagné!")
+    message = input('Envie de jouer ? (o/n):\n')
+    socket.send(('PLAY'+format(message.capitalize())).encode())
+\end{verbatim}
 
 \subsection{Les observateurs}
 \textnormal{
-En plus des clients joueur, il est intéressant d'ajouter des clients observateurs qui peuvent voir la partie en cours et dès que la partie est terminée de devenir joueur à leur tour.\\
-Pour faire ça, on a ajouté un cas particulier à notre fonction qui envoi la partie aux clients pour qu'elle envoie les bateaux des deux joueurs. Le serveur envoi ça avce le prefix 'WT' car ce n'est pas à lui de jouer.
+En plus des clients "joueur", il est intéressant d'ajouter des clients "observateur" qui peuvent voir la partie en cours.\\
+Pour faire ça, on a ajouté un cas particulier à notre fonction qui envoie la partie aux clients pour qu'elle envoie les bateaux des deux joueurs. Le serveur envoi donc les 200 caractères de la partie avec le prefix 'WT' car ce n'est pas à lui de jouer.
 }
+\begin{verbatim}
+# pour les observateurs
+else:
+    data = "WT"
+    for i in range(2):
+        data = data + getConfiguration( game.boats[i],
+                                        game.shots[(i+1)%2],
+                                        showBoats=True)
+    socket.send(data.encode())
+\end{verbatim}
 
 \subsection{Connexions sécurisées}
 

@@ -4,5 +4,5 @@
 \contentsline {section}{\numberline {3}Les extensions r\IeC {\'e}alis\IeC {\'e}es}{3}
 \contentsline {subsection}{\numberline {3.1}Syst\IeC {\`e}me de compte}{3}
 \contentsline {subsection}{\numberline {3.2}Possibilit\IeC {\'e} de rejouer}{3}
-\contentsline {subsection}{\numberline {3.3}Les observateurs}{3}
-\contentsline {subsection}{\numberline {3.4}Connexions s\IeC {\'e}curis\IeC {\'e}es}{3}
+\contentsline {subsection}{\numberline {3.3}Les observateurs}{4}
+\contentsline {subsection}{\numberline {3.4}Connexions s\IeC {\'e}curis\IeC {\'e}es}{4}
