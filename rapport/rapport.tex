@@ -1,0 +1,58 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[francais]{babel}
+\usepackage{graphicx}
+\usepackage{verbatim}
+
+\title{\textbf{Rapport - Projet de réseau}}
+\author{Adrien Chinour\\Camille Meyrignac}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\section{La couche transport : TCP}
+
+\textnormal{
+\\Pour passer le jeu en réseau, il a fallut d'abord définir la couche transport, car c'est elle qui fait le lien entre les couches physiques et la couche session utilisé par notre jeu. On a donc d'abord réaliser:
+}
+
+\begin{itemize}
+\item la fonction permettant de créer un serveur lorsque l'utilisateur entre la commande ./main.py
+\item la fonction permettant de connecter un client a un serveur déjà existant avec la commande ./main.py IP PORT avec IP correspondant à l'ip du serveur et PORT le port sur lequel le serveur écoute.
+\end{itemize}
+\textnormal{
+\\Les fonctions sont assez simple, la première créer un socket (avec l'option socket.SOCK\_STREAM pour utiliser la version TCP) pour le serveur qui écoute sur le port 7777 en boucle.
+Et la deuxième créer un socket pour le client et le connecte au serveur. Code des deux fonctions:
+}
+
+\begin{verbatim}
+def createServer():
+    s = socket.socket(socket.AF_INET6,socket.SOCK_STREAM,0)
+    s.bind(('',7777))
+    s.listen(1)
+    return s
+
+def createClient(IP,port):
+    s = socket.socket(socket.AF_INET6,socket.SOCK_STREAM,0)
+    s.connect((IP,int(float(port))))
+    return s
+\end{verbatim}
+
+\section{Notre protocole personnel}
+\textnormal{
+\\ Maintenant que notre couche transport est prête il faut mettre en place notre protocole permettant au serveur et aux clients de communiquer.\\
+Comme pour la partie precedente nous avons créer deux fonctions une executer par le serveur pour lire les messages des cliens et l'autre executer par les clients pour lire les messages du serveur.\\
+}
+
+
+
+
+
+\section{Les extensions réalisées}
+
+\end{document}
