@@ -118,11 +118,11 @@ def sendToAll(sockets, server):
     for so in sockets:
         if so != server:
             if so == joueur[0][0]:
-                sendGame(0, joueur[0][0], (tour_j == 0))
+                sendGame(0, joueur[0][0], (tour_j == 0))#envoi pour le joueur 1
             elif so == joueur[1][0]:
-                sendGame(1, joueur[1][0], (tour_j == 1))
+                sendGame(1, joueur[1][0], (tour_j == 1))#envoi pour le joueur 1
             else:
-                sendGame(-1, so, False)
+                sendGame(-1, so, False)#envoi pour l'observateur
 
 """ Gestion des messages reçu par le client (protocole personnel) """
 def readMessage(m,socket):
@@ -165,10 +165,11 @@ def readMessage(m,socket):
 """Gestion des messages reçu par le serveur (protocole personnel)"""
 def readMessageServer(m,socket,l,server):
     global game, users, joueur, tour_j, nbp, sockuser
+    #gestion des "usernames"
     if(m.startswith('US')):
         m = m[2:]
         find = 0
-        for user in users:#ajout de preuve de deconnection du joueur //!\\
+        for user in users:
             if(user == m):
                 find = 1
                 for key, info_user in joueur.items():
@@ -181,7 +182,7 @@ def readMessageServer(m,socket,l,server):
             sockuser[socket] = m
             users[m] = ('')
         socket.send('PW'.encode())
-        
+    #gestion des mots de passe
     elif(m.startswith('PW')):
         m = m[2:]
         print(m)
@@ -215,7 +216,7 @@ def readMessageServer(m,socket,l,server):
                     break
         else:
             socket.send('PW'.encode())
-            
+    #gestion des tirs
     elif(m.startswith('AS')):
         m = m[2:]
         print(m)
@@ -224,6 +225,7 @@ def readMessageServer(m,socket,l,server):
         if checkGameFinish(l) == False:
             tour_j = (tour_j +1)%2
             sendToAll(l, server)
+    #gestion des nouvelles parties
     elif(m.startswith('PLAY')):
         if m.lstrip('PLAY') == 'O' and nbp < 2:
             joueur[nbp] = (socket,users[sockuser[socket]])
