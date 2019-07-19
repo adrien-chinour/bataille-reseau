@@ -1,4 +1,4 @@
-# Battaile Navale en réseau
+# Bataille Navale en réseau
 
 ## Utilisation
 
