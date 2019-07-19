@@ -1,3 +1,7 @@
+# Battaile Navale en réseau
+
+## Utilisation
+
 Pour lancer le jeu en local avec le protocole TLS sur la même machine on lance le main pour le serveur (le certificat donné n'étant actif que pour l'adresse IPv4 127.0.0.1 qui est l'adresse localhost pour beaucoup de machines):
 ./main.py   
 puis pour les clients:
